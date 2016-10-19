@@ -239,7 +239,7 @@ def SSH(hostname,username):
        client.connect(hostname,username=username , pkey=key)
        print "[INFO] Connect done as "+str(username)
        stdin,stdout,stderr=client.exec_command('/bin/su mobile -c /usr/bin/uicache')
-       return stdin,stdout,stderr
+       return stdin,stdout,stderr,client
     except paramiko.SSHException:
        print "[INFO] SSH error"
        quit()

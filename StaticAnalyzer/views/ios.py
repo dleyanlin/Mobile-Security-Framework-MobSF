@@ -81,6 +81,7 @@ def StaticAnalyzer_iOS(request):
                     APP_FILE=MD5 + '.ipa'        #NEW FILENAME
                     APP_PATH=APP_DIR+APP_FILE    #APP PATH
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
+                    SSH(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
@@ -88,7 +89,6 @@ def StaticAnalyzer_iOS(request):
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR)
                     #get app information from divice
-                    SSH(DEVICE_IP_ADDREDD,DEVICE_USER)
                     remote_map_file="/var/mobile/Library/MobileInstallation/LastLaunchServicesMap.plist"
                     local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
                     print "\n[INFO] Get APP Information from device, Use "+str(local_map_file)
