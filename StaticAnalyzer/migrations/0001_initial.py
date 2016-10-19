@@ -106,6 +106,8 @@ class Migration(migrations.Migration):
                 ('INFOPLIST', models.TextField()),
                 ('BINNAME', models.TextField()),
                 ('IDF', models.TextField()),
+                ('UUID', models.TextField()),
+                ('DATADIR', models.TextField()),
                 ('VERSION', models.CharField(max_length=50)),
                 ('SDK', models.TextField()),
                 ('PLTFM', models.TextField()),

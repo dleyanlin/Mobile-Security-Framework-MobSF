@@ -47,6 +47,7 @@ def StaticAnalyzer_iOS(request):
             MD5=request.GET['checksum']  #MD5
             APP_DIR=os.path.join(settings.UPLD_DIR, MD5+'/') #APP DIRECTORY
             TOOLS_DIR=os.path.join(DIR, 'StaticAnalyzer/tools/mac/')  #TOOLS DIR
+            ##add for get data file
             if TYP=='ipa':
                 #DB
                 DB=StaticAnalyzerIPA.objects.filter(MD5=MD5)
@@ -62,6 +63,8 @@ def StaticAnalyzer_iOS(request):
                     'plist' : DB[0].INFOPLIST,
                     'bin_name' : DB[0].BINNAME,
                     'id' : DB[0].IDF,
+                    'uuid' : DB[0].UUID,
+                    'datadir' : DB[0].DATADIR,
                     'ver' : DB[0].VERSION,
                     'sdk' : DB[0].SDK,
                     'pltfm' : DB[0].PLTFM,
@@ -82,16 +85,29 @@ def StaticAnalyzer_iOS(request):
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA"
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
-                    FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')   #Get Files, normalize + to x, and convert binary plist -> xml
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR)
+                    remote_map_file="/var/mobile/Library/MobileInstallation/LastLaunchServicesMap.plist"
+                    local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
+                    print "\n[INFO] Get APP Information from device,Use "+str(local_map_file)
+                    SyncAPPData(remote_map_file,local_map_file)
+                    map_data=readBinXML(local_map_file)
+                    p=plistlib.readPlistFromString(map_data)
+                    DATADIR = p['User'][ID]["Container"]
+                    UUID = p['User'][ID]["BundleContainer"].split('/')[7]
+                    print "[Debug]The UUID is "+str(UUID)
+                    print "[Debug]The DATADIR is "+str(DATADIR)
+                    print "\n[INFO] sync the APP data file use rsync"
+                    remote_data_dir=DATADIR+"/."
+                    SyncAPPData(remote_data_dir,BIN_DIR)
+                    FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')#Get Files, normalize + to x, and convert binary plist -> xml
                     #Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if RESCAN=='1':
                         print "\n[INFO] Updating Database..."
-                        StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
+                        StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
                     elif RESCAN=='0':
                         print "\n[INFO] Saving to Database"
-                        STATIC_DB=StaticAnalyzerIPA(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
+                        STATIC_DB=StaticAnalyzerIPA(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
                         STATIC_DB.save()
                     context = {
                     'title' : 'Static Analysis',
@@ -103,6 +119,8 @@ def StaticAnalyzer_iOS(request):
                     'plist' : INFO_PLIST,
                     'bin_name' : BIN_NAME,
                     'id' : ID,
+                    'uuid' : UUID,
+                    'datadir' : DATADIR,
                     'ver' : VER,
                     'sdk' : SDK,
                     'pltfm' : PLTFM,
@@ -254,8 +272,8 @@ def ViewFile(request):
         mode=request.GET['mode']
         m=re.match('^[0-9a-f]{32}$',MD5)
         ext=fil.split('.')[-1]
-        f=re.search("plist|db|sqlitedb|sqlite|txt|m",ext)
-        if m and f and re.findall('xml|db|txt|m',typ) and re.findall('ios|ipa',mode):
+        f=re.search("plist|db|sqlitedb|sqlite|sql|log|txt|m",ext)
+        if m and f and re.findall('xml|db|log|txt|m',typ) and re.findall('ios|ipa',mode):
             if (("../" in fil) or ("%2e%2e" in fil) or (".." in fil) or ("%252e" in fil)):
                 return HttpResponseRedirect('/error/')
             else:
@@ -276,6 +294,10 @@ def ViewFile(request):
                 elif typ=='db':
                     format='plain'
                     dat=HandleSqlite(sfile)
+                elif typ=='log':
+                    format='plain'
+                    with io.open(sfile,mode='r',encoding="utf8",errors="ignore") as f:
+                        dat=f.read()
                 elif typ=='txt':
                     format='plain'
                     APP_DIR=os.path.join(settings.UPLD_DIR, MD5+'/')
@@ -302,6 +324,12 @@ def readBinXML(FILE):
         return dat
     except:
         PrintException("[ERROR] Converting Binary XML to Readable XML")
+
+def SyncAPPData(remote_dir,local_dir):
+    """sync the remote file to local."""
+    #remote_dir="root@setting.ip:"+remote_dir
+    subprocess.check_call(["rsync","-avz",remote_dir,local_dir])
+    #for dirName, subDir, files in os.walk(remote_data_dir):
 
 def HandleSqlite(SFile):
     try:
@@ -338,6 +366,7 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
         certz=''
         sfiles=''
         db=''
+        log=''
         plist=''
         certz=''
         for dirName, subDir, files in os.walk(SRC):
@@ -353,8 +382,10 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
                     ext=jfile.split('.')[-1]
                     if re.search("cer|pem|cert|crt|pub|key|pfx|p12", ext):
                         certz+=escape(file_path.replace(SRC,'')) + "</br>"
-                    if re.search("db|sqlitedb|sqlite", ext):
+                    if re.search("db|sqlitedb|sqlite|sql", ext):
                         db+="<a href='../ViewFile/?file="+escape(fileparam)+"&type=db&mode="+MODE+"&md5="+MD5+"''> "+escape(fileparam)+" </a></br>"
+                    if re.search("log", ext):
+                        log+="<a href='../ViewFile/?file="+escape(fileparam)+"&type=log&mode="+MODE+"&md5="+MD5+"''> "+escape(fileparam)+" </a></br>"
                     if jfile.endswith(".plist"):
                         if BIN:
                             readBinXML(file_path)
@@ -362,6 +393,9 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
         if len(db)>1:
             db="<tr><td>SQLite Files</td><td>"+db+"</td></tr>"
             sfiles+=db
+        if len(log)>1:
+            log="<tr><td>Log Files</td><td>"+log+"</td></tr>"
+            sfiles+=log
         if len(plist)>1:
             plist="<tr><td>Plist Files</td><td>"+plist+"</td></tr>"
             sfiles+=plist
