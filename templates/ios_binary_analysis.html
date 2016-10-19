@@ -12,6 +12,7 @@
             <li class="active"><a href="#information"><i class="glyphicon glyphicon-info-sign"></i> Information</a></li>
             <li><a href="#options"><i class="fa fa-gears"></i> Options</a></li>
             <li><a href="#binary"><i class="fa fa-mobile"></i> Binary Analysis</a></li>
+            <li><a href="#keychain"><i class="fa fa-mobile"></i> KeyChain Analysis</a></li>
             <li><a href="#file"><i class="fa fa-file-text-o"></i> File Analysis</a></li>
             <li><a href="#libraries"><i class="glyphicon glyphicon-chevron-down"></i> Libraries</a></li>
             <li><a href="#strings"><i class="glyphicon glyphicon-sort-by-alphabet-alt"></i> Strings</a></li>
@@ -200,6 +201,41 @@
                   </thead>
                   <tbody>
                     {{ bin_anal | safe}}
+                    </tbody>
+                    </table>
+
+                            </div>
+            <!-- /.box-body -->
+          </div>
+          <!-- /.box -->
+        </div>
+</section>
+
+
+<section id="keychain">
+  <h2 class="page-header"></h2>
+  <!-- /.box -->
+
+          <div class="box">
+          <div class="box-header">
+             <!-- /.box-header -->
+              <h3 class="box-title"><i class="fa fa-mobile"></i> View keychain</h3>
+            </div>
+           <div class="box-body no-padding">
+              <div class="table-responsive">
+              <table class="table table-bordered table-hover table-striped">
+                  <thead>
+                      <tr>
+                          <th>id</th>
+                          <th>Entitlement Group</th>
+                          <th>Account</th>
+                          <th>Service</th>
+                          <th>Protection</th>
+                          <th>User Presence</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                    <!--{{ bin_anal | safe}}-->
                     </tbody>
                     </table>
 
