@@ -10,7 +10,7 @@ from django.conf import settings
 from django.utils.html import escape
 from django.template.defaulttags import register
 
-from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip, SSH
+from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip,SSH
 from StaticAnalyzer.settings import DEVICE_IP_ADDREDD, DEVICE_USER
 
 from StaticAnalyzer.models import StaticAnalyzerIPA,StaticAnalyzerIOSZIP
@@ -19,7 +19,7 @@ from MalwareAnalyzer.views import MalwareCheck
 
 from xml.dom import minidom
 import sqlite3 as sq
-import io, re, os, subprocess, ntpath, shutil, plistlib
+import io, re, os, subprocess, ntpath, shutil, plistlib,json
 
 try:
     import xhtml2pdf.pisa as pisa
@@ -81,13 +81,15 @@ def StaticAnalyzer_iOS(request):
                     APP_FILE=MD5 + '.ipa'        #NEW FILENAME
                     APP_PATH=APP_DIR+APP_FILE    #APP PATH
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
-                    SSH(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device
+                    Uicache(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA"
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR)
+                    DumpKeyChain(DEVICE_IP_ADDREDD,DEVICE_USER)
+
                     #get app information from divice
                     remote_map_file="/var/mobile/Library/MobileInstallation/LastLaunchServicesMap.plist"
                     local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
@@ -104,6 +106,7 @@ def StaticAnalyzer_iOS(request):
                     SyncAPPData(remote_data_dir,BIN_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
+
                     #Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if RESCAN=='1':
@@ -716,3 +719,27 @@ def iOS_Source_Analysis(SRC,MD5):
         return html,dang,URLnFile,DOMAINS,EmailnFile,XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN
     except:
         PrintException("[ERROR] iOS Source Code Analysis")
+
+def Uicache(hostname,username):
+    client=SSH(hostname,username)
+    stdin,stdout,stderr=client.exec_command('/bin/su mobile -c /usr/bin/uicache')
+    return stdin,stdout,stderr
+
+def DumpKeyChain(hostname,username):
+    keychaindata=''
+    client=SSH(hostname,username)
+    stdin,stdout,stderr=client.exec_command('/var/root/keychaineditor --action dump')
+    output=stdout.read()
+    data = json.loads(output)
+    for key in data:
+        keychaindata+=","+(json.dumps(data[key]))
+    return keychaindata[1:]
+
+def ViewKeyChain(request):
+    keychaindata=DumpKeyChain(DEVICE_IP_ADDREDD,DEVICE_USER)
+    #print keychaindata[1:]
+    context ={'title': 'KeyChain',
+          'keychain_data': keychaindata
+         }
+    template = "ios_keychain.html"
+    return render(request, template, context)

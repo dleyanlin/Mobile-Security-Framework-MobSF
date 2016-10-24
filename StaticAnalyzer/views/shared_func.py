@@ -228,6 +228,8 @@ def PDF(request):
 
         PrintException("[ERROR] PDF Report Generation Error")
         return HttpResponseRedirect('/error/')
+
+
 def SSH(hostname,username):
     print "[INFO] SSH the give server."
     try:
@@ -238,8 +240,7 @@ def SSH(hostname,username):
        print "[INFO] Connecting to server "+str(hostname)
        client.connect(hostname,username=username , pkey=key)
        print "[INFO] Connect done as "+str(username)
-       stdin,stdout,stderr=client.exec_command('/bin/su mobile -c /usr/bin/uicache')
-       return stdin,stdout,stderr,client
+       return client
     except paramiko.SSHException:
        print "[INFO] SSH error"
        quit()

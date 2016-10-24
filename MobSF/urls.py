@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^StaticAnalyzer/$', StaticAnalyzer.views.android.StaticAnalyzer),
     url(r'^StaticAnalyzer_iOS/$', StaticAnalyzer.views.ios.StaticAnalyzer_iOS),
     url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
+    url(r'^ViewKeyChain/$', StaticAnalyzer.views.ios.ViewKeyChain),
     url(r'^ViewSource/$', StaticAnalyzer.views.android.ViewSource),
     url(r'^PDF/$', StaticAnalyzer.views.shared_func.PDF),
     url(r'^Smali/$', StaticAnalyzer.views.android.Smali),
