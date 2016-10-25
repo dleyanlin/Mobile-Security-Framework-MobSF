@@ -65,4 +65,4 @@ logs/
 uploads/
 db.sqlite3
 secret
-settings.py
+devicesettings.py

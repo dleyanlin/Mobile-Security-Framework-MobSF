@@ -11,7 +11,7 @@ from django.utils.html import escape
 from django.template.defaulttags import register
 
 from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip,SSH
-from StaticAnalyzer.settings import DEVICE_IP_ADDREDD, DEVICE_USER
+from StaticAnalyzer.devicesettings import DEVICE_IP_ADDREDD, DEVICE_USER
 
 from StaticAnalyzer.models import StaticAnalyzerIPA,StaticAnalyzerIOSZIP
 from MobSF.utils import PrintException,python_list,python_dict,isDirExists,isFileExists
