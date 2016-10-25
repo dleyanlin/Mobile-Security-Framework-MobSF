@@ -81,6 +81,7 @@ def StaticAnalyzer_iOS(request):
                     APP_FILE=MD5 + '.ipa'        #NEW FILENAME
                     APP_PATH=APP_DIR+APP_FILE    #APP PATH
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
+                    DATA_DIR=os.path.join(BIN_DIR,"Data/")
                     Uicache(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
@@ -88,8 +89,6 @@ def StaticAnalyzer_iOS(request):
                     print "[INFO] Extracting IPA"
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR)
-                    DumpKeyChain(DEVICE_IP_ADDREDD,DEVICE_USER)
-
                     #get app information from divice
                     remote_map_file="/var/mobile/Library/MobileInstallation/LastLaunchServicesMap.plist"
                     local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
@@ -103,7 +102,7 @@ def StaticAnalyzer_iOS(request):
                     print "[Debug]The DATADIR is "+str(DATADIR)
                     print "\n[INFO] sync the APP data file use rsync"
                     remote_data_dir=DATADIR+"/."
-                    SyncAPPData(remote_data_dir,BIN_DIR)
+                    SyncAPPData(remote_data_dir,DATA_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
 
@@ -337,7 +336,6 @@ def SyncAPPData(remote_dir,local_dir):
     print "[INFO] sync app data with " +str(DEVICE_IP_ADDREDD)
     remote_dir=DEVICE_USER +"@" + DEVICE_IP_ADDREDD + ":" + remote_dir
     subprocess.check_call(["rsync","-avz",remote_dir,local_dir])
-    #for dirName, subDir, files in os.walk(remote_data_dir):
 
 def HandleSqlite(SFile):
     try:
