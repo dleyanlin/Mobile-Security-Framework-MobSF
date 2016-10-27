@@ -48,6 +48,7 @@ def StaticAnalyzer_iOS(request):
             MD5=request.GET['checksum']  #MD5
             APP_DIR=os.path.join(settings.UPLD_DIR, MD5+'/') #APP DIRECTORY
             TOOLS_DIR=os.path.join(DIR, 'StaticAnalyzer/tools/mac/')  #TOOLS DIR
+            CLASSDUMP_DIR=os.path.join(APP_DIR,"classdump/")
             ##add for get data file
             if TYP=='ipa':
                 #DB
@@ -88,7 +89,7 @@ def StaticAnalyzer_iOS(request):
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA"
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
-                    INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR)
+                    INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
                     #get app information from divice
                     remote_map_file="/var/mobile/Library/MobileInstallation/LastLaunchServicesMap.plist"
                     local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
@@ -105,7 +106,6 @@ def StaticAnalyzer_iOS(request):
                     SyncAPPData(remote_data_dir,DATA_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
-
                     #Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if RESCAN=='1':
@@ -412,7 +412,7 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
     except:
         PrintException("[ERROR] iOS List Files")
 
-def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR):
+def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
     try:
         print "[INFO] Starting Binary Analysis"
         dirs = os.listdir(SRC)
@@ -548,6 +548,8 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR):
             else:
                 CLASSDUMPZ_BIN = os.path.join(TOOLS_DIR,'class-dump-z')
             subprocess.call(["chmod", "777", CLASSDUMPZ_BIN])
+            print "[INFO] Dumping class to. " + str(CLASSDUMP_DIR)
+            subprocess.call([CLASSDUMPZ_BIN, "-H","-s", BIN_PATH,"-o",CLASSDUMP_DIR])
             dat=subprocess.check_output([CLASSDUMPZ_BIN,BIN_PATH])
             CDUMP=dat
             FILE=os.path.join(APP_DIR,"classdump.txt")
@@ -740,4 +742,35 @@ def ViewKeyChain(request):
           'keychain_data': keychaindata
          }
     template = "ios_keychain.html"
+    return render(request, template, context)
+
+def ListClassHeadFiles(SRC):
+    headfiles=[]
+    head_file_path=''
+    for dirName, subDir, files in os.walk(SRC):
+        for jfile in files:
+            if not jfile.endswith(".DS_Store"):
+                head_file_path=os.path.join(SRC,dirName)
+                headfiles.append(jfile)
+    return headfiles
+
+def ViewClassDump(request):
+    data=''
+    HEAD_FILE=request.GET['file']
+    MD5=request.GET['md5']  #MD5
+    CLASSDUMP_DIR=os.path.join(settings.UPLD_DIR, MD5+'/classdump/') #APP DIRECTORY
+    HEAD_FILES=ListClassHeadFiles(CLASSDUMP_DIR)
+    try:
+        FILE=os.path.join(CLASSDUMP_DIR,HEAD_FILE)
+        with io.open(FILE,mode='r',encoding="utf8",errors="ignore") as f:
+            data=f.read()
+    except:
+        PrintException("[ERROR] - Cannot read file")
+    context ={
+          'title': 'View Class Dump',
+          'md5': MD5,
+          'head_files': HEAD_FILES,
+          'code': data
+         }
+    template = "ios_class_dump.html"
     return render(request, template, context)

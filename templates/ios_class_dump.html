@@ -1,0 +1,62 @@
+
+
+{% extends "base_top_only.html" %}
+   {% block content %}
+   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/default.min.css">
+  <style>
+   .sidebar-nav{
+     height: 730px;
+     overflow-y: scroll;
+   }
+  .sidebar-nav ul {
+      float: center;
+      width: auto;
+      margin:0;
+      padding:0;
+     }
+
+  .sidebar-nav ul li {
+      padding-left: 16px;
+      height: 26px;
+      font: 15px arial, sans-serif;
+   }
+</style>
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span2">
+     <aside class="main-sidebar">
+      <div class="sidebar-nav">
+        <!-- sidebar menu: : style can be found in sidebar.less -->
+        <ul class="side-nav fixed" style="width: 240px;">
+          {% for file in head_files %}
+              <li><a href="../ViewClassDump/?file={{file}}&md5={{ md5 }}&mode=ios">{{ file | safe }}</a></li>
+          {% endfor %}
+        </ul>
+     </div>
+     </aside>
+    </div>
+
+    <div class="span10">
+      <section id=>
+                <div class="box">
+                  <!-- /.box-header -->
+                  <div class="box-body">
+                      <div class="list-group">
+                         <pre>
+                           <code class="objc">
+                             {{ code | safe }}
+                         </code>
+                       </pre>
+
+                      </div>
+                  </div>
+                </div>
+      </section>
+    </div>
+  </div>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+{% endblock %}
