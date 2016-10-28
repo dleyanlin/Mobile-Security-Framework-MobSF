@@ -231,13 +231,13 @@ def PDF(request):
 
 
 def SSH(hostname,username):
-    print "[INFO] SSH the give server."
+    print "[INFO] SSH the give server."+str(hostname)
     try:
        path = os.path.join(os.environ['HOME'], '.ssh', 'id_rsa')
        key = paramiko.RSAKey.from_private_key_file(path)
        client = paramiko.SSHClient()
        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-       print "[INFO] Connecting to server "+str(hostname)
+       print "[INFO] Start Connecting to server "+str(hostname)
        client.connect(hostname,username=username , pkey=key)
        print "[INFO] Connect done as "+str(username)
        return client

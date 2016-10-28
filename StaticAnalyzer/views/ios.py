@@ -11,7 +11,7 @@ from django.utils.html import escape
 from django.template.defaulttags import register
 
 from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip,SSH
-from StaticAnalyzer.devicesettings import DEVICE_IP_ADDREDD, DEVICE_USER
+from StaticAnalyzer.devicesettings import *
 
 from StaticAnalyzer.models import StaticAnalyzerIPA,StaticAnalyzerIOSZIP
 from MobSF.utils import PrintException,python_list,python_dict,isDirExists,isFileExists
@@ -82,28 +82,19 @@ def StaticAnalyzer_iOS(request):
                     APP_FILE=MD5 + '.ipa'        #NEW FILENAME
                     APP_PATH=APP_DIR+APP_FILE    #APP PATH
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
-                    DATA_DIR=os.path.join(BIN_DIR,"Data/")
-                    Uicache(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
+                    LOCAL_DATA_DIR=os.path.join(BIN_DIR,"Data/")
+                    LOCAL_KeyboardCache_DIR=os.path.join(LOCAL_DATA_DIR,"Keyboard/")
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA"
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
+                    Uicache(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
                     #get app information from divice
-                    remote_map_file="/var/mobile/Library/MobileInstallation/LastLaunchServicesMap.plist"
-                    local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
-                    print "\n[INFO] Get APP Information from device, Use "+str(local_map_file)
-                    SyncAPPData(remote_map_file,local_map_file)
-                    map_data=readBinXML(local_map_file)
-                    p=plistlib.readPlistFromString(map_data)
-                    DATADIR = p['User'][ID]["Container"]
-                    UUID = p['User'][ID]["BundleContainer"].split('/')[7]
-                    print "[Debug]The UUID is "+str(UUID)
-                    print "[Debug]The DATADIR is "+str(DATADIR)
-                    print "\n[INFO] sync the APP data file use rsync"
-                    remote_data_dir=DATADIR+"/."
-                    SyncAPPData(remote_data_dir,DATA_DIR)
+                    DATADIR,UUID=GetAppInfo(service_map_file,APP_DIR,ID,LOCAL_DATA_DIR)
+                    #Get Keyboard cache and cookies data
+                    GetKeyboardCache(KeyBoard_Cache,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     #Saving to DB
@@ -278,8 +269,8 @@ def ViewFile(request):
         mode=request.GET['mode']
         m=re.match('^[0-9a-f]{32}$',MD5)
         ext=fil.split('.')[-1]
-        f=re.search("plist|db|sqlitedb|sqlite|sql|log|txt|m",ext)
-        if m and f and re.findall('xml|db|log|txt|m',typ) and re.findall('ios|ipa',mode):
+        f=re.search("plist|db|sqlitedb|sqlite|sql|log|dat|txt|m",ext)
+        if m and f and re.findall('xml|db|log|dat|txt|m',typ) and re.findall('ios|ipa',mode):
             if (("../" in fil) or ("%2e%2e" in fil) or (".." in fil) or ("%252e" in fil)):
                 return HttpResponseRedirect('/error/')
             else:
@@ -304,6 +295,10 @@ def ViewFile(request):
                     format='plain'
                     with io.open(sfile,mode='r',encoding="utf8",errors="ignore") as f:
                         dat=f.read()
+                elif typ=='dat':
+                    format='plain'
+                    args=['strings',sfile]
+                    dat=subprocess.check_output(args)
                 elif typ=='txt':
                     format='plain'
                     APP_DIR=os.path.join(settings.UPLD_DIR, MD5+'/')
@@ -373,6 +368,7 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
         sfiles=''
         db=''
         log=''
+        dat=''
         plist=''
         certz=''
         for dirName, subDir, files in os.walk(SRC):
@@ -392,6 +388,8 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
                         db+="<a href='../ViewFile/?file="+escape(fileparam)+"&type=db&mode="+MODE+"&md5="+MD5+"''> "+escape(fileparam)+" </a></br>"
                     if re.search("log", ext):
                         log+="<a href='../ViewFile/?file="+escape(fileparam)+"&type=log&mode="+MODE+"&md5="+MD5+"''> "+escape(fileparam)+" </a></br>"
+                    if re.search("dat", ext):
+                        dat+="<a href='../ViewFile/?file="+escape(fileparam)+"&type=dat&mode="+MODE+"&md5="+MD5+"''> "+escape(fileparam)+" </a></br>"
                     if jfile.endswith(".plist"):
                         if BIN:
                             readBinXML(file_path)
@@ -402,6 +400,9 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
         if len(log)>1:
             log="<tr><td>Log Files</td><td>"+log+"</td></tr>"
             sfiles+=log
+        if len(dat)>1:
+            dat="<tr><td>KeyBoard Cache</td><td>"+dat+"</td></tr>"
+            sfiles+=dat
         if len(plist)>1:
             plist="<tr><td>Plist Files</td><td>"+plist+"</td></tr>"
             sfiles+=plist
@@ -724,6 +725,32 @@ def Uicache(hostname,username):
     client=SSH(hostname,username)
     stdin,stdout,stderr=client.exec_command('/bin/su mobile -c /usr/bin/uicache')
     return stdin,stdout,stderr
+
+def GetAppInfo(service_map_file,APP_DIR,ID,LOCAL_DATA_DIR):
+    print "\n[INFO] Get APP Information from device, Use  "+str(service_map_file)
+    local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
+    try:
+        SyncAPPData(service_map_file,local_map_file)
+        map_data=readBinXML(local_map_file)
+        p=plistlib.readPlistFromString(map_data)
+        DATADIR = p['User'][ID]["Container"]
+        UUID = p['User'][ID]["BundleContainer"].split('/')[7]
+        print "[Debug]The UUID is "+str(UUID)
+        print "[Debug]The DATADIR is "+str(DATADIR)
+        print "\n[INFO] sync the APP data file use rsync"
+        remote_data_dir=DATADIR+"/."
+        SyncAPPData(remote_data_dir,LOCAL_DATA_DIR)
+    except:
+        PrintException("[ERROR] - Can't sync the App data with device ")
+    return DATADIR,UUID
+
+def GetKeyboardCache(KeyBoard_Cache,LOCAL_KeyboardCache_DIR):
+    print "\n[INFO] Get Keyobard cache data from device."
+    try:
+        SyncAPPData(KeyBoard_Cache+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
+        SyncAPPData(KeyBoard_Cache+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
+    except:
+        PrintException("[ERROR] - Cannot sync the keyboard cache data.")
 
 def DumpKeyChain(hostname,username):
     keychaindata=''
