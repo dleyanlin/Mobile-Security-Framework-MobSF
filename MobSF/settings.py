@@ -20,12 +20,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #==============================================
 MOBSF_VER = "v0.9.2.1 Beta"
 BANNER = """
-  __  __       _    ____  _____          ___   ___   ____  
- |  \/  | ___ | |__/ ___||  ___| __   __/ _ \ / _ \ |___ \ 
+  __  __       _    ____  _____          ___   ___   ____
+ |  \/  | ___ | |__/ ___||  ___| __   __/ _ \ / _ \ |___ \
  | |\/| |/ _ \| '_ \___ \| |_    \ \ / / | | | (_) |  __) |
- | |  | | (_) | |_) |__) |  _|    \ V /| |_| |\__, | / __/ 
- |_|  |_|\___/|_.__/____/|_|       \_/  \___(_) /_(_)_____|                                                                                                          
-                                                            
+ | |  | | (_) | |_) |__) |  _|    \ V /| |_| |\__, | / __/
+ |_|  |_|\___/|_.__/____/|_|       \_/  \___(_) /_(_)_____|
+
 """
 utils.printMobSFverison(MOBSF_VER, BANNER)
 #==============================================
@@ -203,7 +203,7 @@ else:
 
     #==============3rd Party Tools=================
     '''
-    If you want to use a different version of 3rd party tools used by MobSF. 
+    If you want to use a different version of 3rd party tools used by MobSF.
     You can do that by specifying the path here. If specified, MobSF will run
     the tool from this location.
     '''
@@ -261,24 +261,24 @@ else:
 
     #===============DEVICE SETTINGS=================
     REAL_DEVICE = False
-    DEVICE_IP = '192.168.1.18'
+    DEVICE_IP = '192.168.99.108'
     DEVICE_ADB_PORT = 5555
     DEVICE_TIMEOUT = 300
     #===============================================
     #================VM SETTINGS ===================
     # VM UUID
-    UUID = '408e1874-759f-4417-9453-53ef21dc2ade'
+    UUID = 'f76a1295-8035-4a04-9a43-b805f78726ce'
     # Snapshot UUID
-    SUUID = '5c9deb28-def6-49c0-9233-b5e03edd85c6'
+    SUUID = 'da93ab51-4b67-4911-bf3a-501a60b408fb'
     # IP of the MobSF VM
-    VM_IP = '192.168.56.101'
+    VM_IP = '192.168.99.100'
     VM_ADB_PORT = 5555
     VM_TIMEOUT = 100
     #==============================================
 
     #================HOST/PROXY SETTINGS ==========
-    PROXY_IP = '192.168.56.1'  # Host/Server/Proxy IP
-    PORT = 1337  # Proxy Port
+    PROXY_IP = '192.168.99.1'  # Host/Server/Proxy IP
+    PORT = 8080  # Proxy Port
     ROOT_CA = '0025aabb.0'
     SCREEN_IP = PROXY_IP  # ScreenCast IP
     SCREEN_PORT = 9339  # ScreenCast Port
@@ -308,7 +308,7 @@ else:
     # 2. enjarify
 
     '''
-    enjarify requires python3. Install Python 3 and add the path to environment variable 
+    enjarify requires python3. Install Python 3 and add the path to environment variable
     PATH or provide the Python 3 path to "PYTHON3_PATH" variable in settings.py
     ex: PYTHON3_PATH = "C:/Users/Ajin/AppData/Local/Programs/Python/Python35-32/"
     '''

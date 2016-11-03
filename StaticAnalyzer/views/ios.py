@@ -82,8 +82,8 @@ def StaticAnalyzer_iOS(request):
                     APP_FILE=MD5 + '.ipa'        #NEW FILENAME
                     APP_PATH=APP_DIR+APP_FILE    #APP PATH
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
-                    LOCAL_DATA_DIR=os.path.join(BIN_DIR,"Data/")
-                    LOCAL_KeyboardCache_DIR=os.path.join(LOCAL_DATA_DIR,"Keyboard/")
+                    LOCAL_DATA_DIR=os.path.join(BIN_DIR,"AppData/")
+                    LOCAL_KeyboardCache_DIR=os.path.join(BIN_DIR,"KeyboardCache/")
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
@@ -330,7 +330,7 @@ def SyncAPPData(remote_dir,local_dir):
     """sync the remote file to local."""
     print "[INFO] sync app data with " +str(DEVICE_IP_ADDREDD)
     remote_dir=DEVICE_USER +"@" + DEVICE_IP_ADDREDD + ":" + remote_dir
-    subprocess.check_call(["rsync","-avz",remote_dir,local_dir])
+    subprocess.check_call(["rsync","-avz","--delete",remote_dir,local_dir])
 
 def HandleSqlite(SFile):
     try:
