@@ -8,7 +8,6 @@ import io
 import re
 import json
 import zipfile
-import paramiko
 import subprocess
 import platform
 
@@ -228,19 +227,3 @@ def PDF(request):
 
         PrintException("[ERROR] PDF Report Generation Error")
         return HttpResponseRedirect('/error/')
-
-
-def SSH(hostname,username):
-    print "[INFO] SSH the give server."+str(hostname)
-    try:
-       path = os.path.join(os.environ['HOME'], '.ssh', 'id_rsa')
-       key = paramiko.RSAKey.from_private_key_file(path)
-       client = paramiko.SSHClient()
-       client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-       print "[INFO] Start Connecting to server "+str(hostname)
-       client.connect(hostname,username=username , pkey=key)
-       print "[INFO] Connect done as "+str(username)
-       return client
-    except paramiko.SSHException:
-       print "[INFO] SSH error"
-       quit()

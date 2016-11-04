@@ -10,16 +10,17 @@ from django.conf import settings
 from django.utils.html import escape
 from django.template.defaulttags import register
 
-from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip,SSH
+from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip
 from StaticAnalyzer.devicesettings import *
 
 from StaticAnalyzer.models import StaticAnalyzerIPA,StaticAnalyzerIOSZIP
 from MobSF.utils import PrintException,python_list,python_dict,isDirExists,isFileExists
+from MobSF.iosdevice.device import Device
 from MalwareAnalyzer.views import MalwareCheck
 
 from xml.dom import minidom
 import sqlite3 as sq
-import io, re, os, subprocess, ntpath, shutil, plistlib,json
+import io, re, os, subprocess, ntpath, shutil, plistlib
 
 try:
     import xhtml2pdf.pisa as pisa
@@ -31,10 +32,12 @@ try:
 except Exception:
     from io import StringIO
 
+iosdevice=Device(DEVICE_IP_ADDREDD,DEVICE_USER)
 ##############################################################
 # Code to support iOS Static Code Anlysis
 ##############################################################
 #iOS Support Functions
+
 def StaticAnalyzer_iOS(request):
     try:
         #Input validation
@@ -87,10 +90,11 @@ def StaticAnalyzer_iOS(request):
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
+                    #iosdevice.install_ipa(APP_PATH,"/var/root/"+APP_FILE)
                     print "[INFO] Extracting IPA"
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    Uicache(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
+                    iosdevice.Uicache()#(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
                     #get app information from divice
                     DATADIR,UUID=GetAppInfo(service_map_file,APP_DIR,ID,LOCAL_DATA_DIR)
                     #Get Keyboard cache and cookies data
@@ -325,12 +329,6 @@ def readBinXML(FILE):
         return dat
     except:
         PrintException("[ERROR] Converting Binary XML to Readable XML")
-
-def SyncAPPData(remote_dir,local_dir):
-    """sync the remote file to local."""
-    print "[INFO] sync app data with " +str(DEVICE_IP_ADDREDD)
-    remote_dir=DEVICE_USER +"@" + DEVICE_IP_ADDREDD + ":" + remote_dir
-    subprocess.check_call(["rsync","-avz","--delete",remote_dir,local_dir])
 
 def HandleSqlite(SFile):
     try:
@@ -721,10 +719,11 @@ def iOS_Source_Analysis(SRC,MD5):
     except:
         PrintException("[ERROR] iOS Source Code Analysis")
 
-def Uicache(hostname,username):
-    client=SSH(hostname,username)
-    stdin,stdout,stderr=client.exec_command('/bin/su mobile -c /usr/bin/uicache')
-    return stdin,stdout,stderr
+def SyncAPPData(remote_dir,local_dir):
+    """sync the remote file to local."""
+    print "[INFO] sync app data with " +str(DEVICE_IP_ADDREDD)
+    remote_dir=DEVICE_USER +"@" + DEVICE_IP_ADDREDD + ":" + remote_dir
+    subprocess.check_call(["rsync","-avz","--delete",remote_dir,local_dir])
 
 def GetAppInfo(service_map_file,APP_DIR,ID,LOCAL_DATA_DIR):
     print "\n[INFO] Get APP Information from device, Use  "+str(service_map_file)
@@ -752,18 +751,8 @@ def GetKeyboardCache(KeyBoard_Cache,LOCAL_KeyboardCache_DIR):
     except:
         PrintException("[ERROR] - Cannot sync the keyboard cache data.")
 
-def DumpKeyChain(hostname,username):
-    keychaindata=''
-    client=SSH(hostname,username)
-    stdin,stdout,stderr=client.exec_command('/var/root/keychaineditor --action dump')
-    output=stdout.read()
-    data = json.loads(output)
-    for key in data:
-        keychaindata+=","+(json.dumps(data[key]))
-    return keychaindata[1:]
-
 def ViewKeyChain(request):
-    keychaindata=DumpKeyChain(DEVICE_IP_ADDREDD,DEVICE_USER)
+    keychaindata=iosdevice.DumpKeyChain
     #print keychaindata[1:]
     context ={'title': 'KeyChain',
           'keychain_data': keychaindata

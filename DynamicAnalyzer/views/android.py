@@ -1108,7 +1108,7 @@ def ScreenCastService():
                     IP = settings.VM_IP
                 if address[0] == IP:
                     '''
-                    Very Basic Check to ensure that only MobSF VM/Device is allowed to connect 
+                    Very Basic Check to ensure that only MobSF VM/Device is allowed to connect
                     to MobSF ScreenCast Service.
                     '''
                     with open(SCREEN_DIR + 'screen.png', 'wb') as f:
