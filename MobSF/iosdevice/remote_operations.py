@@ -260,4 +260,5 @@ class RemoteOperations(object):
     def get_ip(self):
         cmd = ' ifconfig {enth0} |grep "inet"|awk \'{awk}\' '.format(enth0="en0",awk='{print $2}')
         IP = self.command_blocking(cmd)
+        self._device.printer.debug('Remote Device IP is: %s' % IP)
         return IP

@@ -120,14 +120,18 @@ class Device(object):
         # Paramiko Exec Command
         stdin, stdout, stderr = self.conn.exec_command(cmd)
         # Parse STDOUT/ERR
-        out = stdout.read()
-        err = stderr.read()
+        out = stdout.readlines()
+        err = stderr.readlines()
         if internal:
             # For processing, don't display output
             if err:
                 # Show error and abort run
                 err_str = ''.join(err)
                 raise Exception(err_str)
+        else:
+            # Display output
+            if out: map(lambda x: print('\t%s' % x, end=''), out)
+            if err: map(lambda x: print('\t%s%s%s' % (Colors.R, x, Colors.N), end=''), err)
         return out, err
 
     # ==================================================================================================================
@@ -267,7 +271,7 @@ class Device(object):
         cmd = "{bin} {app}".format(bin=self.DEVICE_TOOLS['IPAINSTALLER'], app=dst)
         self.remote_op.command_interactive_tty(cmd)
 
-    def app_install(self,app_name):
+    def have_installed(self,app_name):
         self.printer.verbose("Start to check App whether have been installed")
         self._list_apps()
         if app_name in self._applist.keys():
@@ -277,7 +281,7 @@ class Device(object):
             self.printer.verbose("The %s App not been installed" % app_name)
             return False
 
-    def get_app_version(self,app_name):
+    def get_app_info(self,app_name):
         self.printer.verbose("Start to get %s App base information..." % app_name)
         self._list_apps()
         if app_name in self._applist.keys():
@@ -290,23 +294,24 @@ class Device(object):
 
     def sync_files(self,src,dst):
         device_ip = self.remote_op.get_ip()
-        device_ip = str(device_ip[0].encode("ascii").strip())
+        device_ip = str(device_ip[0].strip())
         self.printer.verbose("Start to sync application data from device: %s" % device_ip)
         remote_dir=self._username +"@" + device_ip + ":" + src
         subprocess.check_call(["rsync","-avz","--delete",remote_dir,dst])
 
-    def get_keyboard_cache(self,KeyBoard_Cache,LOCAL_KeyboardCache_DIR):
+    def get_keyboard_cache(self,LOCAL_KeyboardCache_DIR):
         self.printer.verbose("Start to get Keyobard cache data from device.")
         try:
-            self.sync_files(KeyBoard_Cache+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
-            self.sync_files(KeyBoard_Cache+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
+            self.sync_files(Constants.KEYBOARD_CACHE+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
+            self.sync_files(Constants.KEYBOARD_CACHE+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
         except:
             self.printer.error("Cannot sync the keyboard cache data.")
 
     def dump_keychain(self):
         self.printer.verbose("Start to dump keychain data from device.")
         keychaindata=''
-        stdin,stdout,stderr=self.conn.exec_command('/var/root/keychaineditor --action dump')
+        cmd = '{} --action dump'.format(self.DEVICE_TOOLS['KEYCHAIN_DUMP'])
+        stdin,stdout,stderr=self.conn.exec_command(cmd)
         out=stdout.read()
         data = json.loads(out)
         for key in data:
