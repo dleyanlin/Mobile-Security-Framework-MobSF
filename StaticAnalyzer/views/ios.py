@@ -11,7 +11,6 @@ from django.utils.html import escape
 from django.template.defaulttags import register
 
 from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip
-from StaticAnalyzer.devicesettings import *
 
 from StaticAnalyzer.models import StaticAnalyzerIPA,StaticAnalyzerIOSZIP
 from MobSF.utils import PrintException,python_list,python_dict,isDirExists,isFileExists
@@ -32,7 +31,6 @@ try:
 except Exception:
     from io import StringIO
 
-iosdevice=Device(DEVICE_IP_ADDREDD,DEVICE_USER)
 ##############################################################
 # Code to support iOS Static Code Anlysis
 ##############################################################
@@ -90,15 +88,10 @@ def StaticAnalyzer_iOS(request):
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
-                    #iosdevice.install_ipa(APP_PATH,"/var/root/"+APP_FILE)
-                    print "[INFO] Extracting IPA"
+                    print "[INFO] Extracting IPA for analysis..."
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    iosdevice.Uicache()#(DEVICE_IP_ADDREDD,DEVICE_USER) #ssh to device for unicache
-                    #get app information from divice
-                    DATADIR,UUID=GetAppInfo(service_map_file,APP_DIR,ID,LOCAL_DATA_DIR)
-                    #Get Keyboard cache and cookies data
-                    GetKeyboardCache(KeyBoard_Cache,LOCAL_KeyboardCache_DIR)
+                    UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,DB[0].UUID,DB[0].DATADIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     #Saving to DB
@@ -719,43 +712,39 @@ def iOS_Source_Analysis(SRC,MD5):
     except:
         PrintException("[ERROR] iOS Source Code Analysis")
 
-def SyncAPPData(remote_dir,local_dir):
-    """sync the remote file to local."""
-    print "[INFO] sync app data with " +str(DEVICE_IP_ADDREDD)
-    remote_dir=DEVICE_USER +"@" + DEVICE_IP_ADDREDD + ":" + remote_dir
-    subprocess.check_call(["rsync","-avz","--delete",remote_dir,local_dir])
-
-def GetAppInfo(service_map_file,APP_DIR,ID,LOCAL_DATA_DIR):
-    print "\n[INFO] Get APP Information from device, Use  "+str(service_map_file)
-    local_map_file=APP_DIR+"LastLaunchServicesMap.plist"
+def GetKeyboardCache(device,KeyBoard_Cache,LOCAL_KeyboardCache_DIR):
+    print "\n[INFO] Start to get Keyobard cache data from device."
     try:
-        SyncAPPData(service_map_file,local_map_file)
-        map_data=readBinXML(local_map_file)
-        p=plistlib.readPlistFromString(map_data)
-        DATADIR = p['User'][ID]["Container"]
-        UUID = p['User'][ID]["BundleContainer"].split('/')[7]
-        print "[Debug]The UUID is "+str(UUID)
-        print "[Debug]The DATADIR is "+str(DATADIR)
-        print "\n[INFO] sync the APP data file use rsync"
-        remote_data_dir=DATADIR+"/."
-        SyncAPPData(remote_data_dir,LOCAL_DATA_DIR)
-    except:
-        PrintException("[ERROR] - Can't sync the App data with device ")
-    return DATADIR,UUID
-
-def GetKeyboardCache(KeyBoard_Cache,LOCAL_KeyboardCache_DIR):
-    print "\n[INFO] Get Keyobard cache data from device."
-    try:
-        SyncAPPData(KeyBoard_Cache+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
-        SyncAPPData(KeyBoard_Cache+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
+        device.sync_files(KeyBoard_Cache+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
+        device.sync_files(KeyBoard_Cache+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
     except:
         PrintException("[ERROR] - Cannot sync the keyboard cache data.")
 
+def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,origin_uuid,origin_app_data):
+    print "[INFO] Start to analysis by connect to device..."
+    device=Device()
+    KeyBoard_Cache="/var/mobile/Library/Keyboard/"
+    if not device.app_install(ID):
+       device.install_ipa(APP_PATH)
+    ver_in_device,uu_id,app_data=device.get_app_version(ID)
+    print "[INFO] The version of analysis ipa is "+str(VER)
+    if ver_in_device==VER:
+       device.sync_files(app_data+"/.",LOCAL_DATA_DIR)
+       device.get_keyboard_cache(KeyBoard_Cache,LOCAL_KeyboardCache_DIR)
+    else:
+        uu_id=origin_uuid
+        app_data=origin_app_data
+    return uu_id,app_data
+    device.cleanup()
+    print "[INFO] End analysis by connect to device"
+
 def ViewKeyChain(request):
-    keychaindata=iosdevice.DumpKeyChain
+    device=Device()
+    keychaindata=device.dump_keychain()
+    device.cleanup()
     #print keychaindata[1:]
     context ={'title': 'KeyChain',
-          'keychain_data': keychaindata
+              'keychain_data': keychaindata
          }
     template = "ios_keychain.html"
     return render(request, template, context)
