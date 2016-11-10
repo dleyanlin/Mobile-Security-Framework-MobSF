@@ -91,7 +91,7 @@ def StaticAnalyzer_iOS(request):
                     print "[INFO] Extracting IPA for analysis..."
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,DB[0].UUID,DB[0].DATADIR)
+                    UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     #Saving to DB
@@ -296,12 +296,14 @@ def ViewFile(request):
                     format='plain'
                     args=['strings',sfile]
                     dat=subprocess.check_output(args)
+                '''
                 elif typ=='txt':
                     format='plain'
                     APP_DIR=os.path.join(settings.UPLD_DIR, MD5+'/')
                     FILE=os.path.join(APP_DIR,"classdump.txt")
                     with io.open(FILE,mode='r',encoding="utf8",errors="ignore") as f:
                         dat=f.read()
+                        '''
         else:
             return HttpResponseRedirect('/error/')
         context = {'title': escape(ntpath.basename(fil)),
@@ -542,6 +544,8 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
             subprocess.call(["chmod", "777", CLASSDUMPZ_BIN])
             print "[INFO] Dumping class to. " + str(CLASSDUMP_DIR)
             subprocess.call([CLASSDUMPZ_BIN, "-H","-s", BIN_PATH,"-o",CLASSDUMP_DIR])
+            cmd='echo "Please select the head function head file to check...">{}'.format(CLASSDUMP_DIR+ "readme.txt")
+            subprocess.check_call(cmd, shell=True)
             dat=subprocess.check_output([CLASSDUMPZ_BIN,BIN_PATH])
             CDUMP=dat
             FILE=os.path.join(APP_DIR,"classdump.txt")
@@ -712,23 +716,6 @@ def iOS_Source_Analysis(SRC,MD5):
     except:
         PrintException("[ERROR] iOS Source Code Analysis")
 
-def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,origin_uuid,origin_app_data):
-    print "[INFO] Start to analysis by connect to device..."
-    device=Device()
-    if not device.have_installed(ID):
-       device.install_ipa(APP_PATH)
-    ver_in_device,uu_id,app_data=device.get_app_info(ID)
-    print "[INFO] The version of analysis ipa is "+str(VER)
-    if ver_in_device==VER:
-       device.sync_files(app_data+"/.",LOCAL_DATA_DIR)
-       device.get_keyboard_cache(LOCAL_KeyboardCache_DIR)
-    else:
-        uu_id=origin_uuid
-        app_data=origin_app_data
-    return uu_id,app_data
-    #device.cleanup()
-    print "[INFO] End analysis by connect to device"
-
 def ViewKeyChain(request):
     device=Device()
     keychaindata=device.dump_keychain()
@@ -741,14 +728,12 @@ def ViewKeyChain(request):
     return render(request, template, context)
 
 def ListClassHeadFiles(SRC):
-    files=[]
-    file_path=''
+    head_files=[]
     for dirName, subDir, files in os.walk(SRC):
         for jfile in files:
             if not jfile.endswith(".DS_Store"):
-                file_path=os.path.join(SRC,dirName)
-                files.append(jfile)
-    return files
+                head_files.append(jfile)
+    return head_files
 
 def ViewClassDump(request):
     data=''
@@ -771,18 +756,21 @@ def ViewClassDump(request):
     template = "ios_class_dump.html"
     return render(request, template, context)
 
-def ViewDumpMemory(request):
-    device=Device()
+def ViewHeadMemory(request):
     data=''
     ID=request.GET['bundleid']
     MD5=request.GET['md5']
+    MEMORY_FILE=request.GET['file'].encode('ascii')
     APP_DIR=os.path.join(settings.UPLD_DIR, MD5) #APP DIRECTORY
-    device.dump_head_memory(ID,APP_DIR)
-    MEMORY_FILES=ListClassHeadFiles(APP_DIR+'gdb_dumps/')
-    print MEMORY_FILES
-    MEMORY_FILE=request.GET['file']
+    if ID !="":
+       device=Device()
+       device.dump_head_memory(ID,APP_DIR)
+       cmd='echo "Please select the memory file to check...">{}'.format(APP_DIR+"/gdb_dumps/"+ "readme.txt")
+       subprocess.check_call(cmd, shell=True)
+       device.cleanup()
+    MEMORY_FILES=ListClassHeadFiles(APP_DIR+'/gdb_dumps/')
     try:
-        args=["strings",MEMORY_FILE,"2>/dev/null"]
+        args=["strings",APP_DIR+'/gdb_dumps/'+MEMORY_FILE]
         data=subprocess.check_output(args)
     except:
         PrintException("[ERROR] - Cannot read file")
@@ -792,5 +780,19 @@ def ViewDumpMemory(request):
           'memory_files': MEMORY_FILES,
           'memory_data': data
          }
-    template = "ios_memory_dump.html"
+    template = "ios_head_memory.html"
     return render(request, template, context)
+
+def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
+      print "[INFO] Start to analysis by connect to device..."
+      device=Device()
+      if not device.have_installed(ID):
+         device.install_ipa(APP_PATH)
+      ver_in_device,uu_id,app_data=device.get_app_info(ID)
+      print "[INFO] The version of analysis ipa is "+str(VER)
+      if ver_in_device==VER:
+         device.sync_files(app_data+"/.",LOCAL_DATA_DIR)
+         device.get_keyboard_cache(LOCAL_KeyboardCache_DIR)
+         return uu_id,app_data
+      device.cleanup()
+      print "[INFO] End analysis by connect to device"

@@ -29,7 +29,7 @@
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="side-nav fixed" style="width: 240px;">
           {% for file in head_files %}
-              <li><a href="../ViewClassDump/?file={{file}}&md5={{ md5 }}&mode=ios">{{ file | safe }}</a></li>
+              <li><a href="../ViewClassDump/?file={{ file }}&md5={{ md5 }}">{{ file | safe }}</a></li>
           {% endfor %}
         </ul>
      </div>

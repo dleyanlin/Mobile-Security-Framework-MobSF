@@ -274,7 +274,7 @@ class Device(object):
 
     def get_app_info(self,app_name):
         self.printer.verbose("Start to get %s App base information..." % app_name)
-        #self._list_apps()
+        self._list_apps()
         #if app_name in self._applist.keys():
         metadata=self.app.get_metadata(app_name)
         app_ver = metadata["app_version"].split(' ')[0]
@@ -286,8 +286,8 @@ class Device(object):
     def sync_files(self,src,dst):
         device_ip = self.remote_op.get_ip()
         device_ip = str(device_ip[0].strip())
-        self.printer.verbose("Start to sync application data from device: %s" % device_ip)
         remote_dir=self._username +"@" + device_ip + ":" + src
+        self.printer.verbose("Start to sync data from %s >> %s" %(remote_dir,dst))
         subprocess.check_call(["rsync","-avz","--delete",remote_dir,dst])
 
     def get_keyboard_cache(self,LOCAL_KeyboardCache_DIR):
