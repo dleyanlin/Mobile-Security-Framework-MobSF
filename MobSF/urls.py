@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
     url(r'^ViewClassDump/$', StaticAnalyzer.views.ios.ViewClassDump),
     url(r'^ViewKeyChain/$', StaticAnalyzer.views.ios.ViewKeyChain),
+    url(r'^ViewDumpMemory/$', StaticAnalyzer.views.ios.ViewDumpMemory),
     url(r'^ViewSource/$', StaticAnalyzer.views.android.ViewSource),
     url(r'^PDF/$', StaticAnalyzer.views.shared_func.PDF),
     url(r'^Smali/$', StaticAnalyzer.views.android.Smali),

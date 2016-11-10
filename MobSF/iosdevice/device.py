@@ -52,15 +52,6 @@ class Device(object):
     # INIT
     # ==================================================================================================================
     def __init__(self):
-        # Setup params
-
-        #self._ip = ip
-        #self._port = port
-        #self._username = username
-        #self._password = password
-        #self._pub_key_auth = bool(pub_key_auth)
-        #self._tools_local = tools
-
         # Init related objects
         self.app = App(self)
         self.installer = Installer(self)
@@ -283,14 +274,14 @@ class Device(object):
 
     def get_app_info(self,app_name):
         self.printer.verbose("Start to get %s App base information..." % app_name)
-        self._list_apps()
-        if app_name in self._applist.keys():
-            metadata=self.app.get_metadata(app_name)
-            app_ver = metadata["app_version"].split(' ')[0]
-            uuid = metadata["uuid"]
-            data_directory = metadata["data_directory"]
-            self.printer.verbose("The %s App Version in device is %s" %(app_name,app_ver))
-            return app_ver,uuid,data_directory
+        #self._list_apps()
+        #if app_name in self._applist.keys():
+        metadata=self.app.get_metadata(app_name)
+        app_ver = metadata["app_version"].split(' ')[0]
+        uuid = metadata["uuid"]
+        data_directory = metadata["data_directory"]
+        self.printer.verbose("The %s App Version in device is %s" %(app_name,app_ver))
+        return app_ver,uuid,data_directory
 
     def sync_files(self,src,dst):
         device_ip = self.remote_op.get_ip()
@@ -317,3 +308,39 @@ class Device(object):
         for key in data:
             keychaindata+=","+(json.dumps(data[key]))
         return keychaindata[1:]
+
+    def dump_head_memory(self,app_name,local_head_folder):
+       self._list_apps()
+       metadata=self.app.get_metadata(app_name)
+       self.printer.info("Launching the app...")
+       self.app.open(metadata['bundle_id'])
+       pid = self.app.search_pid(metadata['name'])
+       # Create temp files/folders
+       dir_dumps = self.remote_op.build_temp_path_for_file("gdb_dumps")
+       fname_mach = self.remote_op.build_temp_path_for_file("gdb_mach")
+       fname_ranges = self.remote_op.build_temp_path_for_file("gdb_ranges")
+       self.remote_op.write_file(fname_mach, "info mach-regions")
+       if self.remote_op.dir_exist(dir_dumps): self.remote_op.dir_delete(dir_dumps)
+       self.remote_op.dir_create(dir_dumps)
+       # Enumerate Mach Regions
+       self.printer.info("Enumerating mach regions...")
+       cmd = '''\
+         gdb --pid="%s" --batch --command=%s 2>/dev/null | grep sub-regions | awk '{print $3,$5}' | while read range; do
+           echo "mach-regions: $range"
+           cmd="dump binary memory %s/dump`echo $range| awk '{print $1}'`.dmp $range"
+           echo "$cmd" >> %s
+       done ''' % (pid, fname_mach, dir_dumps, fname_ranges)
+       self.remote_op.command_blocking(cmd)
+
+       # Dump memory
+       self.printer.info("Dumping memory (it might take a while)...")
+       cmd = 'gdb --pid="%s" --batch --command=%s &>>/dev/null' % (pid, fname_ranges)
+       self.remote_op.command_blocking(cmd)
+       # Check if we have dumps
+       self.printer.verbose("Checking if we have dumps...")
+       file_list = self.remote_op.dir_list(dir_dumps, recursive=True)
+       failure = filter(lambda x: 'total 0' in x, file_list)
+       if failure:
+          self.printer.error('It was not possible to attach to the process (known issue in iOS9. A Fix is coming soon)')
+          return
+       self.sync_files(dir_dumps,local_head_folder)

@@ -712,14 +712,6 @@ def iOS_Source_Analysis(SRC,MD5):
     except:
         PrintException("[ERROR] iOS Source Code Analysis")
 
-def GetKeyboardCache(device,KeyBoard_Cache,LOCAL_KeyboardCache_DIR):
-    print "\n[INFO] Start to get Keyobard cache data from device."
-    try:
-        device.sync_files(KeyBoard_Cache+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
-        device.sync_files(KeyBoard_Cache+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
-    except:
-        PrintException("[ERROR] - Cannot sync the keyboard cache data.")
-
 def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,origin_uuid,origin_app_data):
     print "[INFO] Start to analysis by connect to device..."
     device=Device()
@@ -734,7 +726,7 @@ def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,ori
         uu_id=origin_uuid
         app_data=origin_app_data
     return uu_id,app_data
-    device.cleanup()
+    #device.cleanup()
     print "[INFO] End analysis by connect to device"
 
 def ViewKeyChain(request):
@@ -749,14 +741,14 @@ def ViewKeyChain(request):
     return render(request, template, context)
 
 def ListClassHeadFiles(SRC):
-    headfiles=[]
-    head_file_path=''
+    files=[]
+    file_path=''
     for dirName, subDir, files in os.walk(SRC):
         for jfile in files:
             if not jfile.endswith(".DS_Store"):
-                head_file_path=os.path.join(SRC,dirName)
-                headfiles.append(jfile)
-    return headfiles
+                file_path=os.path.join(SRC,dirName)
+                files.append(jfile)
+    return files
 
 def ViewClassDump(request):
     data=''
@@ -777,4 +769,28 @@ def ViewClassDump(request):
           'code': data
          }
     template = "ios_class_dump.html"
+    return render(request, template, context)
+
+def ViewDumpMemory(request):
+    device=Device()
+    data=''
+    ID=request.GET['bundleid']
+    MD5=request.GET['md5']
+    APP_DIR=os.path.join(settings.UPLD_DIR, MD5) #APP DIRECTORY
+    device.dump_head_memory(ID,APP_DIR)
+    MEMORY_FILES=ListClassHeadFiles(APP_DIR+'gdb_dumps/')
+    print MEMORY_FILES
+    MEMORY_FILE=request.GET['file']
+    try:
+        args=["strings",MEMORY_FILE,"2>/dev/null"]
+        data=subprocess.check_output(args)
+    except:
+        PrintException("[ERROR] - Cannot read file")
+    context ={
+          'title': 'View Dump Memory',
+          'md5': MD5,
+          'memory_files': MEMORY_FILES,
+          'memory_data': data
+         }
+    template = "ios_memory_dump.html"
     return render(request, template, context)
