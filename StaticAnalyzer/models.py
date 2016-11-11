@@ -67,6 +67,7 @@ class StaticAnalyzerIPA(models.Model):
     SDK = models.TextField()
     PLTFM = models.TextField()
     MINX = models.TextField()
+    URL_HANDLERS = models.TextField()
     BIN_ANAL = models.TextField()
     LIBS = models.TextField()
     FILES = models.TextField()

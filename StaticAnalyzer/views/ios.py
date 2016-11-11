@@ -72,6 +72,7 @@ def StaticAnalyzer_iOS(request):
                     'sdk' : DB[0].SDK,
                     'pltfm' : DB[0].PLTFM,
                     'min' : DB[0].MINX,
+                    'url_handlers' : DB[0].URL_HANDLERS,
                     'bin_anal' : DB[0].BIN_ANAL,
                     'libs' : DB[0].LIBS,
                     'files' : python_list(DB[0].FILES),
@@ -90,7 +91,7 @@ def StaticAnalyzer_iOS(request):
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA for analysis..."
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
-                    INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
+                    INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
                     UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
@@ -98,10 +99,10 @@ def StaticAnalyzer_iOS(request):
                     print "\n[INFO] Connecting to DB"
                     if RESCAN=='1':
                         print "\n[INFO] Updating Database..."
-                        StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
+                        StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,URL_HANDLERS=URL_HANDLERS,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
                     elif RESCAN=='0':
                         print "\n[INFO] Saving to Database"
-                        STATIC_DB=StaticAnalyzerIPA(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
+                        STATIC_DB=StaticAnalyzerIPA(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,URL_HANDLERS=URL_HANDLERS,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
                         STATIC_DB.save()
                     context = {
                     'title' : 'Static Analysis',
@@ -119,6 +120,7 @@ def StaticAnalyzer_iOS(request):
                     'sdk' : SDK,
                     'pltfm' : PLTFM,
                     'min' : MIN,
+                    'url_handlers' : URL_HANDLERS,
                     'bin_anal' : BIN_ANAL,
                     'libs' : LIBS,
                     'files' : FILES,
@@ -422,13 +424,14 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
         SDK=""
         PLTFM=""
         MIN=""
+        URL_HANDLERS=""
         XML=""
 
         try:
             print "[INFO] Reading Info.plist"
             XML=readBinXML(XML_FILE)
             p=plistlib.readPlistFromString(XML)
-            BIN_NAME = BIN = ID = VER = SDK = PLTFM = MIN = ""
+            BIN_NAME = BIN = ID = VER = SDK = PLTFM = MIN = URL_HANDLERS= ""
             if "CFBundleDisplayName" in p:
                 BIN_NAME=p["CFBundleDisplayName"]
             if "CFBundleExecutable" in p:
@@ -443,6 +446,11 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
                 PLTFM=p["DTPlatformVersion"]
             if "MinimumOSVersion" in p:
                 MIN=p["MinimumOSVersion"]
+            try:
+                URL_HANDLERS = [url['CFBundleURLSchemes'][0] for url in p['CFBundleURLTypes']]
+                print "[INFO] The URL_HANDLERS is: " +str(URL_HANDLERS)
+            except:
+                URL_HANDLERS = None
 
         except:
             PrintException("[ERROR] - Reading from Info.plist")
@@ -565,7 +573,7 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
         strings=escape(strings.replace(BIN_DIR + "/",""))
         STRINGS=strings.replace("\n","</br>")
 
-        return XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN,LIBS,BIN_RES,STRINGS
+        return XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_RES,STRINGS
     except:
         PrintException("[ERROR] iOS Binary Analysis")
 
