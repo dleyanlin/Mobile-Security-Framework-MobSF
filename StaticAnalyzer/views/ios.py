@@ -552,7 +552,7 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
             subprocess.call(["chmod", "777", CLASSDUMPZ_BIN])
             print "[INFO] Dumping class to. " + str(CLASSDUMP_DIR)
             subprocess.call([CLASSDUMPZ_BIN, "-H","-s", BIN_PATH,"-o",CLASSDUMP_DIR])
-            cmd='echo "Please select the head function head file to check...">{}'.format(CLASSDUMP_DIR+ "readme.txt")
+            cmd='echo "Please select a head file of function to analysis ...">{}'.format(CLASSDUMP_DIR+ "readme.txt")
             subprocess.check_call(cmd, shell=True)
             dat=subprocess.check_output([CLASSDUMPZ_BIN,BIN_PATH])
             CDUMP=dat
@@ -728,6 +728,7 @@ def ViewKeyChain(request):
     device=Device()
     keychaindata=device.dump_keychain()
     device.cleanup()
+    device.disconnect()
     #print keychaindata[1:]
     context ={'title': 'KeyChain',
               'keychain_data': keychaindata
@@ -769,16 +770,17 @@ def ViewHeadMemory(request):
     ID=request.GET['bundleid']
     MD5=request.GET['md5']
     MEMORY_FILE=request.GET['file'].encode('ascii')
-    APP_DIR=os.path.join(settings.UPLD_DIR, MD5) #APP DIRECTORY
+    HEADMEMORY_DIR=os.path.join(settings.UPLD_DIR, MD5+'/headmemory/') #APP DIRECTORY
     if ID !="":
        device=Device()
-       device.dump_head_memory(ID,APP_DIR)
-       cmd='echo "Please select the memory file to check...">{}'.format(APP_DIR+"/gdb_dumps/"+ "readme.txt")
+       device.dump_head_memory(ID,HEADMEMORY_DIR)
+       cmd='echo "Please select a memory file to check wheter have snsiteive data...">{}'.format(HEADMEMORY_DIR+"/gdb_dumps/"+ "readme.txt")
        subprocess.check_call(cmd, shell=True)
        device.cleanup()
-    MEMORY_FILES=ListClassHeadFiles(APP_DIR+'/gdb_dumps/')
+       device.disconnect()
+    MEMORY_FILES=ListClassHeadFiles(HEADMEMORY_DIR+'gdb_dumps/')
     try:
-        args=["strings",APP_DIR+'/gdb_dumps/'+MEMORY_FILE]
+        args=["strings",HEADMEMORY_DIR+'gdb_dumps/'+MEMORY_FILE]
         data=subprocess.check_output(args)
     except:
         PrintException("[ERROR] - Cannot read file")
@@ -803,4 +805,5 @@ def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
          device.get_keyboard_cache(LOCAL_KeyboardCache_DIR)
          return uu_id,app_data
       device.cleanup()
+      device.disconnect()
       print "[INFO] End analysis by connect to device"

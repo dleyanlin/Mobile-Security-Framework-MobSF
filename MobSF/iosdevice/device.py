@@ -254,6 +254,7 @@ class Device(object):
     def sync_files(self,src,dst):
         device_ip = self.remote_op.get_ip()
         device_ip = str(device_ip[0].strip())
+        self.printer.verbose("The Device IP address is: %s" % device_ip)
         remote_dir=self._username +"@" + device_ip + ":" + src
         self.printer.verbose("Start to sync data from %s >> %s" %(remote_dir,dst))
         subprocess.check_call(["rsync","-avz","--delete",remote_dir,dst])
@@ -310,37 +311,45 @@ class Device(object):
         return keychaindata[1:]
 
     def dump_head_memory(self,app_name,local_head_folder):
-       self._list_apps()
-       metadata=self.app.get_metadata(app_name)
-       self.printer.info("Launching the app...")
-       self.app.open(metadata['bundle_id'])
-       pid = self.app.search_pid(metadata['name'])
-       # Create temp files/folders
-       dir_dumps = self.remote_op.build_temp_path_for_file("gdb_dumps")
-       fname_mach = self.remote_op.build_temp_path_for_file("gdb_mach")
-       fname_ranges = self.remote_op.build_temp_path_for_file("gdb_ranges")
-       self.remote_op.write_file(fname_mach, "info mach-regions")
-       if self.remote_op.dir_exist(dir_dumps): self.remote_op.dir_delete(dir_dumps)
-       self.remote_op.dir_create(dir_dumps)
-       # Enumerate Mach Regions
-       self.printer.info("Enumerating mach regions...")
-       cmd = '''\
-         gdb --pid="%s" --batch --command=%s 2>/dev/null | grep sub-regions | awk '{print $3,$5}' | while read range; do
-           echo "mach-regions: $range"
-           cmd="dump binary memory %s/dump`echo $range| awk '{print $1}'`.dmp $range"
-           echo "$cmd" >> %s
-       done ''' % (pid, fname_mach, dir_dumps, fname_ranges)
-       self.remote_op.command_blocking(cmd)
+       try:
+           self._list_apps()
+           metadata=self.app.get_metadata(app_name)
+           self.printer.info("Launching the app...")
+           self.app.open(metadata['bundle_id'])
+           pid = self.app.search_pid(metadata['name'])
+           # Create temp files/folders
+           dir_dumps = self.remote_op.build_temp_path_for_file("gdb_dumps")
+           fname_mach = self.remote_op.build_temp_path_for_file("gdb_mach")
+           fname_ranges = self.remote_op.build_temp_path_for_file("gdb_ranges")
+           self.remote_op.write_file(fname_mach, "info mach-regions")
+           if self.remote_op.dir_exist(dir_dumps): self.remote_op.dir_delete(dir_dumps)
+           self.remote_op.dir_create(dir_dumps)
+           # Enumerate Mach Regions
+           self.printer.info("Enumerating mach regions...")
+           cmd = '''\
+             gdb --pid="%s" --batch --command=%s 2>/dev/null | grep sub-regions | awk '{print $3,$5}' | while read range; do
+               echo "mach-regions: $range"
+               cmd="dump binary memory %s/dump`echo $range| awk '{print $1}'`.dmp $range"
+               echo "$cmd" >> %s
+           done ''' % (pid, fname_mach, dir_dumps, fname_ranges)
+           self.remote_op.command_blocking(cmd)
 
-       # Dump memory
-       self.printer.info("Dumping memory (it might take a while)...")
-       cmd = 'gdb --pid="%s" --batch --command=%s &>>/dev/null' % (pid, fname_ranges)
-       self.remote_op.command_blocking(cmd)
-       # Check if we have dumps
-       self.printer.verbose("Checking if we have dumps...")
-       file_list = self.remote_op.dir_list(dir_dumps, recursive=True)
-       failure = filter(lambda x: 'total 0' in x, file_list)
-       if failure:
-          self.printer.error('It was not possible to attach to the process (known issue in iOS9. A Fix is coming soon)')
-          return
-       self.sync_files(dir_dumps,local_head_folder)
+           # Dump memory
+           self.printer.info("Dumping memory (it might take a while)...")
+           cmd = 'gdb --pid="%s" --batch --command=%s &>>/dev/null' % (pid, fname_ranges)
+           self.remote_op.command_blocking(cmd)
+           self.printer.info("Dump memory done.be stored under %s" % dir_dumps)
+
+           self.remote_op.download(dir_dumps,local_head_folder,True)
+           #return dir_dumps
+           '''
+           # Check if we have dumps
+           self.printer.verbose("Checking if we have dumps...")
+           file_list = self.remote_op.dir_list(dir_dumps, recursive=True)
+           failure = filter(lambda x: 'total 0' in x, file_list)
+           if failure:
+              self.printer.error('It was not possible to attach to the process (known issue in iOS9. A Fix is coming soon)')
+              return
+         '''
+       except:
+           self.printer.error("Can't dump head memory data, Plese retry!!! ")
