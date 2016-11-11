@@ -251,6 +251,13 @@ class Device(object):
         self.printer.info("Pushing: %s -> %s" % (src, dst))
         self.remote_op.upload(src, dst)
 
+    def sync_files(self,src,dst):
+        device_ip = self.remote_op.get_ip()
+        device_ip = str(device_ip[0].strip())
+        remote_dir=self._username +"@" + device_ip + ":" + src
+        self.printer.verbose("Start to sync data from %s >> %s" %(remote_dir,dst))
+        subprocess.check_call(["rsync","-avz","--delete",remote_dir,dst])
+
     def install_ipa(self, src):
         self.printer.verbose("Start to install %s to device" % src)
         dst = self.remote_op.build_temp_path_for_file("app.ipa")
@@ -282,13 +289,6 @@ class Device(object):
         data_directory = metadata["data_directory"]
         self.printer.verbose("The %s App Version in device is %s" %(app_name,app_ver))
         return app_ver,uuid,data_directory
-
-    def sync_files(self,src,dst):
-        device_ip = self.remote_op.get_ip()
-        device_ip = str(device_ip[0].strip())
-        remote_dir=self._username +"@" + device_ip + ":" + src
-        self.printer.verbose("Start to sync data from %s >> %s" %(remote_dir,dst))
-        subprocess.check_call(["rsync","-avz","--delete",remote_dir,dst])
 
     def get_keyboard_cache(self,LOCAL_KeyboardCache_DIR):
         self.printer.verbose("Start to get Keyobard cache data from device.")
