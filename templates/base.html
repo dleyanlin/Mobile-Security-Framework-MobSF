@@ -114,13 +114,12 @@
    <!-- <script src="/static/js/run_prettify.js"></script>-->
     <script src="/static/js/docs.js"></script>
     <script>
-    var data = [{{keychain_data|safe}}];
-    $(function () {
-    $('#table').bootstrapTable({
-      data: data
-    });
-
-    });
+      var data = [{{keychain_data|safe}}];
+      $(function () {
+          $('#table').bootstrapTable({
+            data: data
+         });
+      });
   </script>
   </body>
 </html>
