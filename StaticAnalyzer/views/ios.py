@@ -2,25 +2,26 @@
 """
 iOS Static Code Analysis
 """
+import sqlite3 as sq
+import io
+import re
+import os
+import subprocess
+import ntpath
+import shutil
+import plistlib
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from django.http import HttpResponse
-from django.template.loader import get_template
 from django.conf import settings
 from django.utils.html import escape
-from django.template.defaulttags import register
+from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip
 
-from StaticAnalyzer.views.shared_func import FileSize,HashGen,Unzip
-
-from StaticAnalyzer.models import StaticAnalyzerIPA,StaticAnalyzerIOSZIP
-from MobSF.utils import PrintException,python_list,python_dict,isDirExists,isFileExists
+from StaticAnalyzer.models import StaticAnalyzerIPA, StaticAnalyzerIOSZIP
+from MobSF.utils import PrintException, python_list, python_dict, isDirExists, isFileExists
+from StaticAnalyzer.tools.strings import strings
 from MobSF.iosdevice.device import Device
+
 from MalwareAnalyzer.views import MalwareCheck
-
-from xml.dom import minidom
-import sqlite3 as sq
-import io, re, os, subprocess, ntpath, shutil, plistlib
-
 try:
     import xhtml2pdf.pisa as pisa
 except:
@@ -86,13 +87,14 @@ def StaticAnalyzer_iOS(request):
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
                     LOCAL_DATA_DIR=os.path.join(BIN_DIR,"AppData/")
                     LOCAL_KeyboardCache_DIR=os.path.join(BIN_DIR,"KeyboardCache/")
+                    UUID=DATADIR='No Analysis Application in device.'
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA for analysis..."
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
+                    if RESCAN=='1': UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     #Saving to DB
@@ -568,10 +570,12 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
         #classdump
 
         # strings
-        args=["strings", BIN_PATH]
-        strings=subprocess.check_output(args)
-        strings=escape(strings.replace(BIN_DIR + "/",""))
-        STRINGS=strings.replace("\n","</br>")
+        print "[INFO] Running strings against the Binary"
+        STRINGS = ""
+        sl = list(strings(BIN_PATH))
+        sl = set(sl)  # Make unique
+        sl = [escape(s) for s in sl]  # Escape evil strings
+        STRINGS = "</br>".join(sl)
 
         return XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_RES,STRINGS
     except:

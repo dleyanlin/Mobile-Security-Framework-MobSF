@@ -1,11 +1,11 @@
-# Mobile-Security-Framework (MobSF)
-Version: v0.9.2.1 beta
+# Mobile Security Framework (MobSF)
+Version: v0.9.3 beta
 <p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/4301109/14958530/d5fb36ac-10a8-11e6-93b9-8859fd0158b6.png">
+  <img src="https://cloud.githubusercontent.com/assets/4301109/20019521/cc61f7fc-a2f2-11e6-95f3-407030d9fdde.png">
 </p>
 
 
-Mobile Security Framework (MobSF) is an intelligent, all-in-one open source mobile application (Android/iOS) automated pen-testing framework capable of performing static and dynamic analysis. It can be used for effective and fast security analysis of Android and iOS Applications and supports both binaries (APK &amp; IPA) and zipped source code. MobSF can also perform Web API Security testing with it's API Fuzzer that can do Information Gathering, analyze Security Headers, identify Mobile API specific vulnerabilities like XXE, SSRF, Path Traversal, IDOR, and other logical issues related to Session and API Rate Limiting.
+Mobile Security Framework (MobSF) is an intelligent, all-in-one open source mobile application (Android/iOS/Windows) automated pen-testing framework capable of performing static and dynamic analysis. It can be used for effective and fast security analysis of Android, iOS and Windows mobile Applications and supports both binaries (APK, IPA &amp; APPX ) and zipped source code. MobSF can also perform Web API Security testing with it's API Fuzzer that can do Information Gathering, analyze Security Headers, identify Mobile API specific vulnerabilities like XXE, SSRF, Path Traversal, IDOR, and other logical issues related to Session and API Rate Limiting.
 
 Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/82e3a63c-4813-11e6-9430-6015d98aeaab.png" alt="Love"> in India
 
@@ -16,6 +16,11 @@ Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/
 
 ## Documentation
 * https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/wiki/1.-Documentation
+
+##Collaborators
+
+* [Ajin Abraham](https://in.linkedin.com/in/ajinabraham)
+* [Dominik Schlecht](https://github.com/DominikSchlecht)
 
 ## Presentations
 * OWASP APPSEC EU 2016 - [Slides](http://www.slideshare.net/ajin25/automated-mobile-application-security-assessment-with-mobsf) | [Video](https://www.youtube.com/watch?v=h00v1euuFXg)
@@ -58,7 +63,7 @@ Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/
 ![api-fuzzer-start-report](https://cloud.githubusercontent.com/assets/4301109/13615236/5d8df210-e59a-11e5-827a-ccf642e96609.png)
 
 ##Credits
-
+* Dominik Schlecht - For the awesome work on adding Windows Phone App Static Analysis to MobSF
 * Bharadwaj Machiraju (@tunnelshade_) - For writing pyWebProxy from scratch
 * MindMac - For writing Android Blue Pill
 * Thomas Abraham - For JS Hacks on UI.
