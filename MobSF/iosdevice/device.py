@@ -252,6 +252,7 @@ class Device(object):
         self.remote_op.upload(src, dst)
 
     def sync_files(self,src,dst):
+        """sync files with device."""
         device_ip = self.remote_op.get_ip()
         device_ip = str(device_ip[0].strip())
         self.printer.verbose("The Device IP address is: %s" % device_ip)
@@ -260,6 +261,7 @@ class Device(object):
         subprocess.check_call(["rsync","-avz","--delete",remote_dir,dst])
 
     def install_ipa(self, src):
+        """Install app with ipa file."""
         self.printer.verbose("Start to install %s to device" % src)
         dst = self.remote_op.build_temp_path_for_file("app.ipa")
           # Upload binary to device
@@ -292,6 +294,7 @@ class Device(object):
         return app_ver,uuid,data_directory
 
     def get_keyboard_cache(self,LOCAL_KeyboardCache_DIR):
+        """get keyboard cache of device."""
         self.printer.verbose("Start to get Keyobard cache data from device.")
         try:
             self.sync_files(Constants.KEYBOARD_CACHE+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
