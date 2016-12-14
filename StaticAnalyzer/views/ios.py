@@ -821,8 +821,6 @@ def InstallApp(request):
 def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
       print "[INFO] Start to analysis by connect to device..."
       device=Device()
-      if not device.have_installed(ID):
-         device.install_ipa(APP_PATH)
       ver_in_device,uu_id,app_data=device.get_app_info(ID)
       print "[INFO] The version of analysis ipa is "+str(VER)
       if ver_in_device==VER:
