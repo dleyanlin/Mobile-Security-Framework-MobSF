@@ -14,7 +14,8 @@
             <li><a href="#binary"><i class="fa fa-mobile"></i> Binary Analysis</a></li>
             <li><a href="#file"><i class="fa fa-file-text-o"></i> File Analysis</a></li>
             <li><a href="#libraries"><i class="glyphicon glyphicon-chevron-down"></i> Libraries</a></li>
-            <li><a href="#files"><i class="fa fa-files-o"></i> Files</a></li>
+            <li><a href="#strings"><i class="fa fa-list"></i> View Strings</a>
+            <li><a href="#files"><i class="fa fa-files-o"></i> App Files</a></li>
             <!--<li><a target="_blank" href="../PDF/?md5={{ md5 }}&amp;type=IPA"><i class="glyphicon glyphicon-list-alt"></i> Download Report</a></li>
             <li><a href="javascript:document.getElementById('dynform').submit();"><i class="glyphicon glyphicon-play-circle""></i> <strong>Start Dynamic Analysis</strong></a></li>-->
           </ul>
@@ -51,6 +52,26 @@
         </div>
         <!-- /.modal -->
 
+
+        <div id="install-app" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Install App</h4>
+            </div>
+            <div class="modal-body edit-content">
+                The {{name}} will be installed to Device,please wait.....
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Modal -->
+<!--
         <div class="modal fade" id="myModalStrings" tabindex="-1" role="dialog" aria-labelledby="myModalLabelStrings">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -65,11 +86,9 @@
           </code></pre>
               </div>
 
-            </div>
-            <!-- /.modal-content -->
-          </div>
-          <!-- /.modal-dialog -->
-        </div>
+            </div> <!-- /.modal-content -->
+        <!--  </div> <!-- /.modal-dialog -->
+      <!--  </div>
         <!-- /.modal -->
 
         <!-- Main content -->
@@ -177,16 +196,22 @@
           <span class="label label-danger pull-right"><i class="fa fa-flash"></i></span>
         </div><!-- /.box-header -->
         <div class="box-body">
-         <div align="center">
-      <a data-target="#myModal" role="button" class="btn btn-info" data-toggle="modal"><i class="fa fa-list"></i> View Info.plist</a>
+         <div align="left">
+            <a href="#install-app" class="btn btn-info" data-toggle="modal"><i class="glyphicon glyphicon-apple"></i> Install App</a>
+            <a href="../ViewClassDump/?file=readme.txt&md5={{ md5 }}" class="btn btn-primary" role="button"><i class="glyphicon glyphicon-apple"></i> UnInstall App</a>
+            <a href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-certificate"></i> Certificate Manager</a>
+            <a href="../ViewHeadMemory/?&bundleid={{ id }}&file=readme.txt&md5={{ md5 }}" class="btn btn-warning" role="button"><i class="glyphicon glyphicon-file"></i> Install Certificate</a>
+            <a href="../StaticAnalyzer_iOS/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=ipa&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-paste"></i> PastedBoard</a>
+      </div>
+        <br>
+        <div align="left">
+              <a data-target="#myModal" role="button" class="btn btn-info" data-toggle="modal"><i class="fa fa-list"></i> View Info.plist</a>
 
-      <a target="_blank" href="../ViewClassDump/?file=readme.txt&md5={{ md5 }}" class="btn btn-primary" role="button"><i class="fa fa-code"></i> View Class Dump</a>
-      <a target="_blank" href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-lock"></i> View KeyChain</a>
-      <a target="_blank" href="../ViewHeadMemory/?&bundleid={{ id }}&file=readme.txt&md5={{ md5 }}" class="btn btn-warning" role="button"><i class="glyphicon glyphicon-file"></i> View head Memory</a>
-
-      <a data-target="#myModalStrings" role="button" class="btn btn-info" data-toggle="modal"><i class="fa fa-list"></i> View Strings</a>
-      <a href="../StaticAnalyzer_iOS/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=ipa&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-refresh"></i> Rescan</a>
-</div>
+              <a target="_blank" href="../ViewClassDump/?file=readme.txt&md5={{ md5 }}" class="btn btn-primary" role="button"><i class="fa fa-code"></i> View Class Dump</a>
+              <a target="_blank" href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-lock"></i> View KeyChain</a>
+              <a target="_blank" href="../ViewHeadMemory/?&bundleid={{ id }}&file=readme.txt&md5={{ md5 }}" class="btn btn-warning" role="button"><i class="glyphicon glyphicon-file"></i> View head Memory</a>
+              <a href="../StaticAnalyzer_iOS/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=ipa&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-refresh"></i> Rescan</a>
+        </div>
 
                </div><!-- /.box-body -->
       </div><!-- /.box -->
@@ -291,30 +316,23 @@
           <!-- /.box -->
 </section>
 
-<!--
+
 <section id="strings">
   <h2 class="page-header"></h2>
-  <!-- /.box
-
           <div class="box">
             <div class="box-header">
               <h3 class="box-title"><i class="glyphicon glyphicon-sort-by-alphabet-alt"></i> Strings</h3>
+              <button class="btn-clipboard" data-clipboard-target="#appstrings"> Copy </button>
             </div>
-            <!-- /.box-header
             <div class="box-body">
-            <div class="list-group">
-
-
+            <div id="appstrings" class="list-group">
                   <p>
                   {{ strings|safe }}
                   </p>
-
             </div>
             </div>
-            <!-- /.box-body
           </div>
-          <!-- /.box
-</section>-->
+</section>
 <section id="files">
   <h2 class="page-header"></h2>
   <!-- /.box -->
@@ -340,6 +358,5 @@
 </section>
         </div><!-- /.content -->
       </div><!-- /.content-wrapper -->
-
 
 {% endblock %}

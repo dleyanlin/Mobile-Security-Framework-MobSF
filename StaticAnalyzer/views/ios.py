@@ -11,6 +11,7 @@ import ntpath
 import shutil
 import plistlib
 from django.shortcuts import render
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.utils.html import escape
@@ -796,6 +797,26 @@ def ViewHeadMemory(request):
          }
     template = "ios_head_memory.html"
     return render(request, template, context)
+
+def InstallApp(request):
+   try:
+        APP_FILE=request.GET['file']
+        MD5=request.GET['md5']
+        APP_PATH=os.path.join(settings.UPLD_DIR, MD5+'/'+APP_FILE) #APP DIRECTORY
+        device=Device()
+        output = device.install_ipa(APP_PATH)
+        device.cleanup()
+        device.disconnect()
+        print "[INFO] output's value is %s" % output
+        if output==1:
+            return HttpResponse("Success")
+        else:
+            return HttpResponse("Failed,Please re-install")
+   except Exception,e:
+        return HttpResponse(e)
+
+    #return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    #return render(request, template, context)
 
 def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
       print "[INFO] Start to analysis by connect to device..."
