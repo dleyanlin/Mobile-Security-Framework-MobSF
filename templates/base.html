@@ -132,14 +132,14 @@
           );
          })
 
-         $('#uninstall-app').on('show.bs.modal', function(e) {
-             var $modal = $(this);
-             $.get("/InstallUninstallApp/?identifier={{ id }}",
+    $('#uninstall-app').on('show.bs.modal', function(e) {
+        var $modal = $(this);
+        $.get("/InstallUninstallApp/?identifier={{ id }}",
              function(rep){
                 $modal.find('.edit-content').html(rep);
-               }
-              );
-             })
+            }
+        );
+    })
      </script>
   </body>
 </html>

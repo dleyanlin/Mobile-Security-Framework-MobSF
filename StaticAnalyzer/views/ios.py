@@ -95,7 +95,7 @@ def StaticAnalyzer_iOS(request):
                     print "[INFO] Extracting IPA for analysis..."
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    if RESCAN=='1': UUID,DATADIR=anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
+                    if RESCAN=='1': UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     #Saving to DB
@@ -434,7 +434,7 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
             print "[INFO] Reading Info.plist"
             XML=readBinXML(XML_FILE)
             p=plistlib.readPlistFromString(XML)
-            BIN_NAME = BIN = ID = VER = SDK = PLTFM = MIN = URL_HANDLERS= ""
+            BIN_NAME = BIN = ID = VER = SDK = PLTFM = MIN = URL_HANDLERS=ATS= ""
             if "CFBundleDisplayName" in p:
                 BIN_NAME=p["CFBundleDisplayName"]
             if "CFBundleExecutable" in p:
@@ -449,6 +449,9 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
                 PLTFM=p["DTPlatformVersion"]
             if "MinimumOSVersion" in p:
                 MIN=p["MinimumOSVersion"]
+            if "NSAppTransportSecurity" in p:
+                ATS=p["NSAppTransportSecurity"]["NSAllowsArbitraryLoads"]
+                print "[INFO] The NSALLOW is: %s" % ATS
             try:
                 URL_HANDLERS = [url['CFBundleURLSchemes'][0] for url in p['CFBundleURLTypes']]
                 print "[INFO] The URL_HANDLERS is: " +str(URL_HANDLERS)
@@ -526,6 +529,12 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
         x=', '.join(x)
         if len(x)>1:
             RAND="<tr><td>Binary make use of the insecure Random Function(s)</td><td><span class='label label-danger'>Insecure</span></td><td>The binary may use the following insecure Random Function(s)</br><strong>" + str(x) + "</strong>.</td></tr>"
+        FATS=''
+        x=re.findall("Yes|True",str(ATS))
+        x=list(set(x))
+        x=', '.join(x)
+        if len(x)>1:
+            FATS="<tr><td>The application has globally disabled ATS</td><td><span class='label label-danger'>Insecure</span></td><td>Disabled ATS, which will allow a connection regardless of HTTP or HTTPS configuration, allow connection to servers with lower TLS versions, and allow connection using cipher suites that do not support forward secrecy (FS)</strong>.</td></tr>"
         LOG=''
         x=re.findall("NSLog",dat)
         x=list(set(x))
@@ -567,7 +576,7 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
 
         except:
             PrintException("[ERROR] - Cannot perform class dump")
-        BIN_RES=PIE+SSMASH+ARC+BANNED_API+WEAK_CRYPTO+CRYPTO+WEAK_HASH+HASH+RAND+LOG+MALL+DBG+WVIEW
+        BIN_RES=PIE+SSMASH+ARC+BANNED_API+WEAK_CRYPTO+CRYPTO+WEAK_HASH+HASH+RAND+FATS+LOG+MALL+DBG+WVIEW
         #classdump
 
         # strings
@@ -819,10 +828,7 @@ def InstallUninstallApp(request):
    except Exception,e:
         return HttpResponse(e)
 
-    #return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    #return render(request, template, context)
-
-def anlysis_by_device(ID,APP_PATH,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
+def anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
       print "[INFO] Start to analysis by connect to device..."
       device=Device()
       ver_in_device,uu_id,app_data=device.get_app_info(ID)
