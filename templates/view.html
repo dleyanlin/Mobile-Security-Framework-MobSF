@@ -7,14 +7,19 @@
   <link type="text/css" rel="stylesheet" href="/static/css/shCoreDefault.css"/>
   <script type="text/javascript">
   SyntaxHighlighter.defaults['quick-code'] = false;
+  SyntaxHighlighter.defaults['gutter'] = false;
+  SyntaxHighlighter.defaults['pad-line-numbers'] = true;
   SyntaxHighlighter.all();
   </script>
+  <script src="https://cdn.jsdelivr.net/clipboard.js/1.5.16/clipboard.min.js"></script>
+  <script>new Clipboard('.btn-clipboard');</script>
 
 <div class="box box-default">
 
   <div class="box-body">
     <h3>{{file}} </h3>
-       <pre class="brush: {{ type }};" >
+    <button class="btn-clipboard" data-clipboard-target="#filecontent"> Copy </button>
+       <pre id=filecontent class="brush: {{ type }};" >
          {{ dat }}
        </pre>
   </div>
