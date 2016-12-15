@@ -125,12 +125,21 @@
 
      $('#install-app').on('show.bs.modal', function(e) {
          var $modal = $(this);
-         $.get("/InstallApp/?file={{ md5 }}.ipa&md5={{ md5 }}",
+         $.get("/InstallUninstallApp/?file={{ md5 }}.ipa&md5={{ md5 }}&identifier=",
          function(rep){
             $modal.find('.edit-content').html(rep);
            }
           );
          })
+
+         $('#uninstall-app').on('show.bs.modal', function(e) {
+             var $modal = $(this);
+             $.get("/InstallUninstallApp/?identifier={{ id }}",
+             function(rep){
+                $modal.find('.edit-content').html(rep);
+               }
+              );
+             })
      </script>
   </body>
 </html>

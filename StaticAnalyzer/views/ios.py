@@ -798,20 +798,24 @@ def ViewHeadMemory(request):
     template = "ios_head_memory.html"
     return render(request, template, context)
 
-def InstallApp(request):
+def InstallUninstallApp(request):
    try:
-        APP_FILE=request.GET['file']
-        MD5=request.GET['md5']
-        APP_PATH=os.path.join(settings.UPLD_DIR, MD5+'/'+APP_FILE) #APP DIRECTORY
         device=Device()
-        output = device.install_ipa(APP_PATH)
+        ID=request.GET['identifier']
+        if ID !="":
+            output=device.uninstall_app(ID)
+        else:
+            APP_FILE=request.GET['file']
+            MD5=request.GET['md5']
+            APP_PATH=os.path.join(settings.UPLD_DIR, MD5+'/'+APP_FILE) #APP DIRECTORY
+            output = device.install_ipa(APP_PATH)
         device.cleanup()
         device.disconnect()
         print "[INFO] output's value is %s" % output
-        if output==1:
+        if output==None:
             return HttpResponse("Success")
         else:
-            return HttpResponse("Failed,Please re-install")
+            return HttpResponse("Failed,Please Re-try")
    except Exception,e:
         return HttpResponse(e)
 

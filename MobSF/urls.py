@@ -27,7 +27,7 @@ urlpatterns = [
     url(r'^StaticAnalyzer_Windows/$', StaticAnalyzer.views.windows.staticanalyzer_windows),
     url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
     url(r'^ViewClassDump/$', StaticAnalyzer.views.ios.ViewClassDump),
-    url(r'^InstallApp/$', StaticAnalyzer.views.ios.InstallApp),
+    url(r'^InstallUninstallApp/$', StaticAnalyzer.views.ios.InstallUninstallApp),
     url(r'^ViewKeyChain/$', StaticAnalyzer.views.ios.ViewKeyChain),
     url(r'^ViewHeadMemory/$', StaticAnalyzer.views.ios.ViewHeadMemory),
     url(r'^ViewSource/$', StaticAnalyzer.views.android.ViewSource),

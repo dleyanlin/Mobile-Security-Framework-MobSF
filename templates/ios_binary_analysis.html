@@ -66,7 +66,25 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
+          </div>
         </div>
+    </div>
+
+
+    <div id="uninstall-app" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">Uninstall App</h4>
+        </div>
+        <div class="modal-body edit-content">
+            The {{name}} will be uninstalled from Device,please wait.....
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
     </div>
 </div>
 
@@ -198,7 +216,7 @@
         <div class="box-body">
          <div align="left">
             <a href="#install-app" class="btn btn-info" data-toggle="modal"><i class="glyphicon glyphicon-apple"></i> Install App</a>
-            <a href="../ViewClassDump/?file=readme.txt&md5={{ md5 }}" class="btn btn-primary" role="button"><i class="glyphicon glyphicon-apple"></i> UnInstall App</a>
+            <a href="#uninstall-app" class="btn btn-primary" role="button" data-toggle="modal"><i class="glyphicon glyphicon-apple"></i> UnInstall App</a>
             <a href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-certificate"></i> Certificate Manager</a>
             <a href="../ViewHeadMemory/?&bundleid={{ id }}&file=readme.txt&md5={{ md5 }}" class="btn btn-warning" role="button"><i class="glyphicon glyphicon-file"></i> Install Certificate</a>
             <a href="../StaticAnalyzer_iOS/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=ipa&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-paste"></i> PastedBoard</a>

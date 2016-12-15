@@ -272,6 +272,11 @@ class Device(object):
         cmd = "{bin} {app}".format(bin=self.DEVICE_TOOLS['IPAINSTALLER'], app=dst)
         self.remote_op.command_interactive_tty(cmd)
 
+    def uninstall_app(self,identifier):
+        self.printer.verbose("Uninstall binary...")
+        cmd = "{bin} -u {app}".format(bin=self.DEVICE_TOOLS['IPAINSTALLER'], app=identifier)
+        self.remote_op.command_interactive_tty(cmd)
+
     def have_installed(self,app_name):
         self.printer.verbose("Start to check App whether have been installed")
         self._list_apps()

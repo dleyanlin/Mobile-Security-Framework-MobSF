@@ -117,6 +117,7 @@ class RemoteOperations(object):
                                                                                                            ip=self._device._ip,
                                                                                                            cmd=cmd)
         out = subprocess.call(cmd, shell=True)
+        self._device.printer.debug("[REMOTE CMD] The CMD output is: %s" % out)
         return out
 
     def command_background_start(self, module, cmd):
