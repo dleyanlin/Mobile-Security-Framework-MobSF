@@ -11,13 +11,16 @@
             <li class="header">Static Analysis</li>
             <li class="active"><a href="#information"><i class="glyphicon glyphicon-info-sign"></i> Information</a></li>
             <li><a href="#nature"><i class="glyphicon glyphicon-tasks"></i> Code Nature</a></li>
+            <li><a href="#certificate"><i class="fa fa-certificate"></i> Signer Certificate</a></li>
             <li><a href="#permissions"><i class="fa fa-align-justify"></i> Permissions</a></li>
             <li><a href="#android-api"><i class="fa fa-dot-circle-o"></i> Android API</a></li>
+            <li><a href="#browsable"><i class="fa fa-clone"></i> Browsable Activities</a></li>
 
             <li class="treeview">
               <a href="javascript::;"><i class="fa fa-circle-o"></i> Security Analysis</a>
               <ul class="nav treeview-menu">
                 <li><a href="#manifest"><i class="fa fa-search"></i> Manifest Analysis</a></li>
+                 
                 <li><a href="#code"><i class="fa fa-code"></i> Code Analysis</a></li>
                 <li><a href="#file"><i class="fa fa-file-text-o"></i> File Analysis</a></li>
               </ul>
@@ -29,6 +32,7 @@
                 <li><a href="#url"><i class="glyphicon glyphicon-globe"></i> URLs</a></li>
                 <li><a href="#domain"><i class="glyphicon glyphicon-screenshot"></i> Malware Check</a></li>
                 <li><a href="#email"><i class="glyphicon glyphicon-envelope"></i> Emails</a></li>
+                <li><a href="#string"><i class="glyphicon glyphicon-sort-by-alphabet-alt"></i> Strings</a></li>
               </ul>
             </li>
 
@@ -43,7 +47,8 @@
                 <li><a href="#files"><i class="fa fa-files-o"></i> Files</a></li>
               </ul>
             </li>
-            <li><a target="_blank" href="../PDF/?md5={{ md5 }}&amp;type=ANDZIP"><i class="glyphicon glyphicon-list-alt"></i> Download Report</a></li>            
+            <li><a target="_blank" href="../PDF/?md5={{ md5 }}&amp;type=APK"><i class="glyphicon glyphicon-list-alt"></i> Download Report</a></li>
+            <li><a href="javascript:document.getElementById('dynform').submit();"><i class="glyphicon glyphicon-play-circle""></i> <strong>Start Dynamic Analysis</strong></a></li>
           </ul>
         </div>
         <!-- /.sidebar -->
@@ -53,6 +58,13 @@
       <div class="content-wrapper">
         <!-- Content Header (Page header) -->
      
+          <form id="dynform" action="../DynamicAnalyzer/" method="POST">
+           {% csrf_token %} 
+          <input type="hidden" name="md5" value="{{ md5 }}">
+          <input type="hidden" name="pkg" value="{{ packagename }}">
+          <input type="hidden" name="lng" value="{{ mainactivity }}">
+          </form>
+
 
         <!-- Main content -->
         <div class="content body">
@@ -267,6 +279,7 @@
 
 <section id="nature">
   <h2 class="page-header"></h2>
+
   <div class="row">
     <div class="col-sm-4">
       <div class="box box-primary">
@@ -276,7 +289,7 @@
         </div><!-- /.box-header -->
         <div class="box-body">
          <div class="list-group">
-                 <p>               
+                  <p>               
                   <span class="label label-primary">Native</span>
                   <a href="#" data-toggle="tooltip" title="Native is true if the application load native code via JNI bridge.">{{ native }}</a>    
                   </p>
@@ -306,20 +319,47 @@
           <h3 class="box-title">Options</h3>
           <span class="label label-danger pull-right"><i class="fa fa-flash"></i></span>
         </div><!-- /.box-header -->
-        <div class="box-body">
-          
-            <a target="_blank" href="{{mani}}" role="button" class="btn btn-info"><i class="fa fa-eye"></i>  View AndroidManifest.xml</a>
-           <a href="../StaticAnalyzer/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=zip&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-refresh"></i> Rescan</a>
-
-
-
-               </div><!-- /.box-body -->
+        <div align="center" class="box-body">
+          <a href="../Java/?md5={{ md5 }}{{ zipped }}" class="btn btn-info" role="button"><i class="fa fa-code"></i> View Java</a>
+            <a href="../download/{{ md5 }}-java.zip" class="btn btn-warning" role="button"> <i class="glyphicon glyphicon-download"></i> Download Java Code</a>
+              </br>
+            <a href="../Smali/?md5={{ md5 }}" class="btn btn-info" role="button"><i class="fa fa-code"></i> View Smali</a>
+            <a href="../download/{{ md5 }}-smali.zip" class="btn btn-warning"> <i class="glyphicon glyphicon-download"></i> Download Smali Code</a> 
+          </br>
+             <a href="../StaticAnalyzer/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=apk&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-refresh"></i> Rescan</a>
+             <a target="_blank" href="{{mani}}" role="button" class="btn btn-warning"><i class="fa fa-eye"></i>  View AndroidManifest.xml</a>
+          </br></br>
+          <a href="javascript:document.getElementById('dynform').submit();" class="btn btn-success btn-lg" role="button"><i class="glyphicon glyphicon-play-circle"></i> Start Dynamic Analysis</a>
+        
+        </div><!-- /.box-body -->
       </div><!-- /.box -->
     </div><!-- /.col -->
   </div><!-- /.row -->
  
 </section>
 
+
+<!-- ============================================================= -->
+
+<section id="certificate">
+  <h2 class="page-header"></h2>
+   <div class="box-header">
+             <!-- /.box-header -->
+              <h3 class="box-title"><i class="fa fa-certificate"></i> Signer Certificate</h3>
+            </div>
+ <pre class="hierarchy bring-up"><code class="language-bash" data-lang="bash">
+{{ certinfo | safe}}
+{% if issued == "good" %} 
+<strong>Certicate Status: </strong><span class="label label-success">Good</span>
+{% elif issued == "bad" %}
+<strong>Certicate Status: </strong><span class="label label-danger">Bad</span>
+<strong>Description:</strong>App Signed by 'Android Debug' Certificate.
+Production ready applications should not be signed with 'Android Debug' Certificate.
+{% elif issued == "missing" %}
+<strong>Certicate Status: </strong><span class="label label-warning">Certificate not found</span>
+{% endif %}
+</code></pre>
+</section>
 
 
 <!-- ============================================================= -->
@@ -397,6 +437,86 @@
 
 
 <!-- ============================================================= -->
+<section id="browsable">
+  <h2 class="page-header"></h2>
+   <!-- /.box -->
+
+          <div class="box">
+            <div class="box-header">
+              <h3 class="box-title"><i class="fa fa-clone"></i> Browsable Activities</h3> 
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body no-padding">
+              <div class="table-responsive">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>ACTIVITY</th>
+                                                <th>INTENT</th>   
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                      {% for activity,intent_details in browsable_activities.items %}
+                          <tr>
+                            <td>{{activity}}</td>
+                            <td>
+                                   {% if intent_details|key:"schemes" %}
+                                      <strong>Schemes</strong>: 
+                                      {% for scheme in intent_details|key:"schemes" %}
+                                        {{scheme}},
+                                      {% endfor %}
+                                       </br>
+                                   {% endif %}
+                                   {% if intent_details|key:"hosts" %}
+                                      <strong>Hosts:</strong> {% for host in intent_details|key:"hosts" %}
+                                        {{host}},
+                                      {% endfor %} 
+                                      </br>
+                                   {% endif %}
+                                   {% if intent_details|key:"ports" %}
+                                      <strong>Ports:</strong> {% for port in intent_details|key:"ports" %}
+                                        {{port}},
+                                      {% endfor %} 
+                                      </br>
+                                   {% endif %}
+                                   {% if intent_details|key:"mime_types" %}
+                                      <strong>Mime Types:</strong> {% for mime in intent_details|key:"mime_types" %}
+                                        {{mime}},
+                                      {% endfor %} 
+                                      </br>
+                                   {% endif %}
+                                   {% if intent_details|key:"paths" %}
+                                      <strong>Paths:</strong> {% for path in intent_details|key:"paths" %}
+                                        {{path}},
+                                      {% endfor %} 
+                                      </br>
+                                   {% endif %}
+                                   {% if intent_details|key:"path_prefixs" %}
+                                      <strong>Path Prefixes:</strong> {% for prefix in intent_details|key:"path_prefixs" %}
+                                        {{prefix}},
+                                      {% endfor %} 
+                                      </br>
+                                   {% endif %}
+                                   {% if intent_details|key:"path_patterns" %}
+                                      <strong>Path Patterns:</strong> {% for pattern in intent_details|key:"path_patterns" %}
+                                        {{pattern}},
+                                      {% endfor %} 
+                                      </br>
+                                   {% endif %}
+                              {% endfor %}
+                            </td>
+                          </tr>
+                    </tbody>
+                    </table>
+                                
+                            </div>
+            </div>
+            <!-- /.box-body -->
+          </div>
+          <!-- /.box -->
+</section>
+<!-- ============================================================= -->
+
 <section id="manifest">
   <h2 class="page-header"></h2>
    <!-- /.box -->
@@ -521,6 +641,7 @@
                   </tr>
                  </thead>
                     {% endif %}
+                 <tbody>
                                         <tbody>
                 
                   {{ urls | safe}} 
@@ -536,7 +657,6 @@
 
 
 <!-- ============================================================= -->
-
 
 <section id="domain">
   <h2 class="page-header"></h2>
@@ -602,8 +722,8 @@
             <!-- /.box-header -->
             <div class="box-body no-padding">
               <div class="table-responsive">
-                  <table class="table table-bordered table-hover table-striped">
-                  {% if emails|length > 1 %} 
+                                    <table class="table table-bordered table-hover table-striped">
+                 {% if emails|length > 1 %} 
                   <thead>
                   <tr>
                      <th>Email</th>
@@ -611,6 +731,7 @@
                   </tr>
                  </thead>
                  {% endif %}
+                 <tbody>
                                         <tbody>
                 
                   {{ emails | safe}} 
@@ -618,6 +739,37 @@
                     </table>
                                 
                             </div>
+            </div>
+            <!-- /.box-body -->
+          </div>
+          <!-- /.box -->
+</section>
+
+
+<!-- ============================================================= -->
+
+<section id="string">
+  <h2 class="page-header"></h2>
+       <!-- /.box -->
+
+          <div class="box">
+            <div class="box-header">
+              <h3 class="box-title"><i class="glyphicon glyphicon-sort-by-alphabet-alt"></i> Strings</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+          <div class="list-group">
+                  <p>  
+                  
+                    {% for val in strings %}
+                      
+                     {{ val }}<br>
+                    
+                    {% endfor %}                  
+                                
+                  
+                  </p>
+                                </div>
             </div>
             <!-- /.box-body -->
           </div>

@@ -130,11 +130,11 @@ def StaticAnalyzer_iOS(request):
                     'file_analysis' : SFILES,
                     'strings' : STRINGS,
                     }
-                template="ios_binary_analysis.html"
-                return render(request,template,context)
-            elif TYP=='ios':
-                DB=StaticAnalyzerIOSZIP.objects.filter(MD5=MD5)
-                if DB.exists() and RESCAN=='0':
+                template = "static_analysis/ios_binary_analysis.html"
+                return render(request, template, context)
+            elif TYP == 'ios':
+                DB = StaticAnalyzerIOSZIP.objects.filter(MD5=MD5)
+                if DB.exists() and RESCAN == '0':
                     print "\n[INFO] Analysis is already Done. Fetching data from the DB..."
                     context = {
                     'title' : DB[0].TITLE,
@@ -247,8 +247,8 @@ def StaticAnalyzer_iOS(request):
                     'domains': DOMAINS,
                     'emails' : EmailnFile
                     }
-                template="ios_source_analysis.html"
-                return render(request,template,context)
+                template = "static_analysis/ios_source_analysis.html"
+                return render(request, template, context)
             else:
                 return HttpResponseRedirect('/error/')
         else:
@@ -260,8 +260,9 @@ def StaticAnalyzer_iOS(request):
         'exp' : e.message,
         'doc' : e.__doc__
         }
-        template="error.html"
-        return render(request,template,context)
+        template = "general/error.html"
+        return render(request, template, context)
+
 def ViewFile(request):
     try:
         print "[INFO] View iOS Files"
@@ -314,9 +315,9 @@ def ViewFile(request):
         context = {'title': escape(ntpath.basename(fil)),
                    'file': escape(ntpath.basename(fil)),
                    'type': format,
-                   'dat' : dat}
-        template="view.html"
-        return render(request,template,context)
+                   'dat': dat}
+        template = "general/view.html"
+        return render(request, template, context)
     except:
         PrintException("[ERROR] View iOS File")
         return HttpResponseRedirect('/error/')
@@ -432,9 +433,11 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
 
         try:
             print "[INFO] Reading Info.plist"
-            XML=readBinXML(XML_FILE)
-            p=plistlib.readPlistFromString(XML)
-            BIN_NAME = BIN = ID = VER = SDK = PLTFM = MIN = URL_HANDLERS=ATS= ""
+            XML = readBinXML(XML_FILE)
+            if isinstance(XML, unicode):
+                XML = XML.encode("utf-8", "replace")
+            p = plistlib.readPlistFromString(XML)
+            BIN_NAME = BIN = ID = VER = SDK = PLTFM = MIN = URL_HANDLERS = ATS = ""
             if "CFBundleDisplayName" in p:
                 BIN_NAME=p["CFBundleDisplayName"]
             if "CFBundleExecutable" in p:
@@ -584,7 +587,8 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
         STRINGS = ""
         sl = list(strings(BIN_PATH))
         sl = set(sl)  # Make unique
-        sl = [escape(s) for s in sl]  # Escape evil strings
+        sl = [s if isinstance(s, unicode) else unicode(s, encoding="utf-8", errors="replace") for s in sl]
+        sl = [escape(s) for s in sl]# Escape evil strings
         STRINGS = "</br>".join(sl)
 
         return XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_RES,STRINGS

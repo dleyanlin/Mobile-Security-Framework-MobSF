@@ -9,9 +9,9 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 import os
+import platform
 import imp
 from MobSF import utils
-import platform
 
 import install.windows.setup as windows_setup
 
@@ -22,9 +22,10 @@ import install.windows.setup as windows_setup
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #==============================================
 
-MOBSF_VER = "v0.9.3 Beta"
+MOBSF_VER = "v0.9.3.8 Beta"
 BANNER = """
   __  __       _    ____  _____        ___   ___   _____
+
  |  \/  | ___ | |__/ ___||  ___|_   __/ _ \ / _ \ |___ /
  | |\/| |/ _ \| '_ \___ \| |_  \ \ / / | | | (_) |  |_ \
  | |  | | (_) | |_) |__) |  _|  \ V /| |_| |\__, | ___) |
@@ -55,12 +56,26 @@ DB_DIR = os.path.join(MobSF_HOME, 'db.sqlite3')
 
 # Database
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': DB_DIR,
     }
 }
+#Postgres DB - Install psycopg2
+'''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mobsf',
+        'USER': 'postgres',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+}
+'''
 #===============================================
 
 #==========LOAD CONFIG FROM MobSF HOME==========
@@ -97,6 +112,7 @@ APK_MIME = [
     'binary/octet-stream',
 ]
 IPA_MIME = [
+    'application/iphone',
     'application/octet-stream',
     'application/x-itunes-ipa',
     'application/x-zip-compressed',
@@ -130,10 +146,13 @@ except NameError:
             secret = file(SECRET_FILE, 'w')
             secret.write(SECRET_KEY)
             secret.close()
-            utils.Migrate(BASE_DIR)
         except IOError:
             Exception('Please create a %s file with random characters \
             to generate your secret key!' % SECRET_FILE)
+        #Run Once
+        utils.Migrate(BASE_DIR)
+        utils.kali_fix(BASE_DIR)
+
 #=============================================
 
 #============DJANGO SETTINGS =================
@@ -318,9 +337,9 @@ else:
 
     #==========DECOMPILER SETTINGS=================
 
-    DECOMPILER = "jd-core"
+    DECOMPILER = "cfr"
 
-    # Two Decompilers are available
+    # Three Decompilers are available
     # 1. jd-core
     # 2. cfr
     # 3. procyon
@@ -358,13 +377,9 @@ else:
     if (os.path.isfile(PATH_TO_LOCK_FILE) is False) and CURRENT_PLATFROM == 'Windows':
         print "[INFO] Running first time setup for windows."
         # Setup is to-be-executed
-        if CONFIG_HOME:
-            windows_setup.install_locally(MobSF_HOME, user_config=USER_CONFIG)
-        else:
-            windows_setup.install_locally(MobSF_HOME)
+        windows_setup.install_locally(MobSF_HOME)
     #==============================================
     #^CONFIG-END^: Do not edit this line
-
 
 # The below code should be loaded last.
 #============JAVA SETTINGS======================

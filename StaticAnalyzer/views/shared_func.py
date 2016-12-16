@@ -10,6 +10,7 @@ import json
 import zipfile
 import subprocess
 import platform
+import errno
 
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
@@ -34,6 +35,11 @@ except Exception:
 try:
     import xhtml2pdf.pisa as pisa
 except:
+    print """\n
+    Make sure you have installed the following dependencies in correct order and exact version.
+    xhtml2pdf==0.0.6
+    html5lib==1.0b8
+    """
     PrintException(
         "[ERROR] xhtml2pdf is not installed. Cannot generate PDF reports")
 
@@ -68,8 +74,23 @@ def Unzip(APP_PATH, EXT_PATH):
     try:
         files = []
         with zipfile.ZipFile(APP_PATH, "r") as z:
-            z.extractall(EXT_PATH)
-            files = z.namelist()
+            for fileinfo in z.infolist():
+                dat = z.open(fileinfo.filename, "r")
+                filename = fileinfo.filename
+                if not isinstance(filename, unicode):
+                    filename = unicode(fileinfo.filename, encoding="utf-8", errors="replace")
+                files.append(filename)
+                outfile = os.path.join(EXT_PATH, filename)
+                if not os.path.exists(os.path.dirname(outfile)):
+                    try:
+                        os.makedirs(os.path.dirname(outfile))
+                    except OSError as exc: # Guard against race condition
+                        if exc.errno != errno.EEXIST:
+                            print "\n[WARN] OS Error: Race Condition"
+                if not outfile.endswith("/"):
+                    with io.open(outfile, mode='wb') as f:
+                        f.write(dat.read())
+                dat.close()
         return files
     except:
         PrintException("[ERROR] Unzipping Error")
@@ -122,6 +143,7 @@ def PDF(request):
                         'providers': python_list(DB[0].PROVIDERS),
                         'services': python_list(DB[0].SERVICES),
                         'libraries': python_list(DB[0].LIBRARIES),
+                        'browsable_activities' : python_dict(DB[0].BROWSABLE),
                         'act_count': DB[0].CNT_ACT,
                         'prov_count': DB[0].CNT_PRO,
                         'serv_count': DB[0].CNT_SER,
@@ -143,9 +165,9 @@ def PDF(request):
                         'mani': DB[0].MANI
                     }
                     if TYP == 'APK':
-                        template = get_template("static_analysis_pdf.html")
+                        template = get_template("pdf/static_analysis_pdf.html")
                     else:
-                        template = get_template("static_analysis_zip_pdf.html")
+                        template = get_template("pdf/static_analysis_zip_pdf.html")
                 else:
                     return HttpResponse(json.dumps({"report": "Report not Found"}),
                                         content_type="application/json; charset=utf-8")
@@ -174,7 +196,7 @@ def PDF(request):
                             'file_analysis': DB[0].SFILESX,
                             'strings': DB[0].STRINGS
                         }
-                        template = get_template("ios_binary_analysis_pdf.html")
+                        template = get_template("pdf/ios_binary_analysis_pdf.html")
                     else:
                         return HttpResponse(json.dumps({"report": "Report not Found"}),
                                             content_type="application/json; charset=utf-8")
@@ -206,42 +228,43 @@ def PDF(request):
                             'domains': python_dict(DB[0].DOMAINS),
                             'emails': DB[0].EmailnFile
                         }
-                        template = get_template("ios_source_analysis_pdf.html")
+                        template = get_template("pdf/ios_source_analysis_pdf.html")
                     else:
                         return HttpResponse(json.dumps({"report": "Report not Found"}),
                                             content_type="application/json; charset=utf-8")
-            elif re.findall('APPX',TYP):
+            elif re.findall('APPX', TYP):
                 if TYP == 'APPX':
-                    db_entry = StaticAnalyzerWindows.objects.filter( # pylint: disable-msg=E1101
+                    db_entry = StaticAnalyzerWindows.objects.filter(  # pylint: disable-msg=E1101
                         MD5=MD5
                     )
                     if db_entry.exists():
                         print "\n[INFO] Fetching data from DB for PDF Report Generation (APPX)"
                         context = {
-                            'title' : db_entry[0].TITLE,
-                            'name' : db_entry[0].APP_NAME,
-                            'pub_name' : db_entry[0].PUB_NAME,
-                            'size' : db_entry[0].SIZE,
+                            'title': db_entry[0].TITLE,
+                            'name': db_entry[0].APP_NAME,
+                            'pub_name': db_entry[0].PUB_NAME,
+                            'size': db_entry[0].SIZE,
                             'md5': db_entry[0].MD5,
-                            'sha1' : db_entry[0].SHA1,
-                            'sha256' : db_entry[0].SHA256,
-                            'bin_name' : db_entry[0].BINNAME,
-                            'version' :  db_entry[0].VERSION,
-                            'arch' :  db_entry[0].ARCH,
-                            'compiler_version' :  db_entry[0].COMPILER_VERSION,
-                            'visual_studio_version' :  db_entry[0].VISUAL_STUDIO_VERSION,
-                            'visual_studio_edition' :  db_entry[0].VISUAL_STUDIO_EDITION,
-                            'target_os' :  db_entry[0].TARGET_OS,
-                            'appx_dll_version' :  db_entry[0].APPX_DLL_VERSION,
-                            'proj_guid' :  db_entry[0].PROJ_GUID,
-                            'opti_tool' :  db_entry[0].OPTI_TOOL,
-                            'target_run' :  db_entry[0].TARGET_RUN,
-                            'files' :  python_list(db_entry[0].FILES),
-                            'strings' : db_entry[0].STRINGS,
-                            'bin_an_results' : python_list(db_entry[0].BIN_AN_RESULTS),
-                            'bin_an_warnings' : python_list(db_entry[0].BIN_AN_WARNINGS)
+                            'sha1': db_entry[0].SHA1,
+                            'sha256': db_entry[0].SHA256,
+                            'bin_name': db_entry[0].BINNAME,
+                            'version':  db_entry[0].VERSION,
+                            'arch':  db_entry[0].ARCH,
+                            'compiler_version':  db_entry[0].COMPILER_VERSION,
+                            'visual_studio_version':  db_entry[0].VISUAL_STUDIO_VERSION,
+                            'visual_studio_edition':  db_entry[0].VISUAL_STUDIO_EDITION,
+                            'target_os':  db_entry[0].TARGET_OS,
+                            'appx_dll_version':  db_entry[0].APPX_DLL_VERSION,
+                            'proj_guid':  db_entry[0].PROJ_GUID,
+                            'opti_tool':  db_entry[0].OPTI_TOOL,
+                            'target_run':  db_entry[0].TARGET_RUN,
+                            'files':  python_list(db_entry[0].FILES),
+                            'strings': db_entry[0].STRINGS,
+                            'bin_an_results': python_list(db_entry[0].BIN_AN_RESULTS),
+                            'bin_an_warnings': python_list(db_entry[0].BIN_AN_WARNINGS)
                         }
-                        template= get_template("windows_binary_analysis_pdf.html")
+                        template = get_template(
+                            "pdf/windows_binary_analysis_pdf.html")
             else:
                 return HttpResponse(json.dumps({"type": "Type is not Allowed"}),
                                     content_type="application/json; charset=utf-8")

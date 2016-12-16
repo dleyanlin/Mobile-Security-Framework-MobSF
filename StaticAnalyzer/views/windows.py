@@ -2,6 +2,7 @@
 """Windows Analysis Module."""
 import re
 import os
+from os.path import expanduser
 import platform
 
 # Binskim/Binscope analysis
@@ -180,7 +181,7 @@ def staticanalyzer_windows(request):
                         'bin_an_results' : bin_an_dic['results'],
                         'bin_an_warnings' : bin_an_dic['warnings'],
                     }
-                template = "windows_binary_analysis.html"
+                template = "static_analysis/windows_binary_analysis.html"
                 return render(request, template, context)
             else:
                 return HttpResponseRedirect('/error/')
@@ -193,7 +194,7 @@ def staticanalyzer_windows(request):
             'exp' : exception.message,
             'doc' : exception.__doc__
         }
-        template = "error.html"
+        template = "general/error.html"
         return render(request, template, context)
 
 def _get_token():
@@ -232,7 +233,7 @@ def _binary_analysis(app_dic):
     bin_an_dic['strings'] = "</br>".join(str_list)
 
     # Search for unsave function
-    pattern = re.compile("\&\#39\;(alloca|gets|memcpy|printf|scanf|sprintf|sscanf|strcat|StrCat|strcpy|StrCpy|strlen|StrLen|strncat|StrNCat|strncpy|StrNCpy|strtok|swprintf|vsnprintf|vsprintf|vswprintf|wcscat|wcscpy|wcslen|wcsncat|wcsncpy|wcstok|wmemcpy)\&\#39\;")
+    pattern = re.compile("(alloca|gets|memcpy|printf|scanf|sprintf|sscanf|strcat|StrCat|strcpy|StrCpy|strlen|StrLen|strncat|StrNCat|strncpy|StrNCpy|strtok|swprintf|vsnprintf|vsprintf|vswprintf|wcscat|wcscpy|wcslen|wcsncat|wcsncpy|wcstok|wmemcpy)")
     for elem in str_list:
         if pattern.match(elem):
             result = {
@@ -271,7 +272,7 @@ def _binary_analysis(app_dic):
         global config
         config = configparser.ConfigParser()
         # Switch to settings definded path if available
-        config.read('MobSF\\config.txt')
+        config.read(expanduser("~") + "\\MobSF\\Config\\config.txt")
 
         # Run analysis functions
         bin_an_dic = __binskim(bin_path, bin_an_dic, run_local=True, app_dir=app_dic['app_dir'])

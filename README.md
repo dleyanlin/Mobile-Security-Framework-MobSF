@@ -14,6 +14,7 @@ Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/
 [![python](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
 [![Code Issues](https://www.quantifiedcode.com/api/v1/project/d49e36d69236411bb854214737f6dfa1/badge.svg)](https://www.quantifiedcode.com/app/project/d49e36d69236411bb854214737f6dfa1)
 
+MobSF is also bundled with [Androdi Tamer](https://androidtamer.com/tamer4-release) and [BlackArch](https://blackarch.org/mobile.html)
 ## Documentation
 * https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/wiki/1.-Documentation
 
@@ -50,6 +51,9 @@ Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/
 
 ![ios-static-analysis-ipa](https://cloud.githubusercontent.com/assets/4301109/13614950/e8174ac8-e598-11e5-8e03-d40ad7d9e5a4.png)
 
+###Static Analysis - Windows APPX
+![windows-static-analysis-appx](https://cloud.githubusercontent.com/assets/4301109/20524598/1e139a1e-b0e1-11e6-8489-ee38c4392b4b.png)
+
 ###Dynamic Analysis - Android APK
 
 ![android-dynamic-analysis](https://cloud.githubusercontent.com/assets/4301109/13615043/6fe62028-e599-11e5-9c50-e44adbba114a.png)
@@ -72,3 +76,4 @@ Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/
 * Abhinav Sejpal (@Abhinav_Sejpal) - For poking me with bugs and feature requests.
 * Anant Srivastava (@anantshri) - For Activity Tester Idea
 * Amrutha VC (@amruthavc) - For the new MobSF logo
+* Rahul (@c0dist) - Kali Support

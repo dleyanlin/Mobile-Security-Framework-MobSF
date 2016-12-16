@@ -13,6 +13,7 @@ import urllib2
 import io
 import ast
 import unicodedata
+import httplib
 import settings
 
 
@@ -22,7 +23,32 @@ def printMobSFverison():
     else:
         print '\n\n\033[1m\033[34mMobile Security Framework ' + settings.MOBSF_VER + '\033[0m'
     print settings.BANNER
+    print "OS: " + platform.system()
+    print "Platform: " + platform.platform()
+    if platform.dist()[0]:
+        print "Dist: " + str(platform.dist())
+    check_update()
 
+def check_update():
+    try:
+        print "\n[INFO] Checking for Update."
+        github_url = "https://raw.githubusercontent.com/ajinabraham/Mobile-Security-Framework-MobSF/master/MobSF/settings.py"
+        response = urllib2.urlopen(github_url)
+        html = response.read().split("\n")
+        for line in html:
+            if line.startswith("MOBSF_VER"):
+                line = line.replace("MOBSF_VER", "").replace('"', '')
+                line = line.replace("=", "").strip()
+                if line != settings.MOBSF_VER:
+                    print """\n[WARN] A new version of MobSF is available,
+Please update from master branch or check for new releases.\n"""
+                else:
+                    print "\n[INFO] No updates available."
+    except (urllib2.HTTPError, httplib.HTTPException):
+        print "\n[WARN] Cannot check for updates.. No Internet Connection Found."
+        return
+    except:
+        PrintException("[ERROR] Cannot Check for updates.")
 
 def createUserConfig(MobSF_HOME):
     try:
@@ -91,6 +117,16 @@ def Migrate(BASE_DIR):
         subprocess.call(args)
     except:
         PrintException("[ERROR] Cannot Migrate")
+
+
+def kali_fix(BASE_DIR):
+    try:
+        if platform.system() == "Linux" and platform.dist()[0] == "Kali":
+            fix_path = os.path.join(BASE_DIR, "MobSF/kali_fix.sh")
+            subprocess.call(["chmod", "a+x", fix_path])
+            subprocess.call([fix_path], shell=True)
+    except:
+        PrintException("[ERROR] Cannot run Kali Fix")
 
 
 def FindVbox():
@@ -293,10 +329,14 @@ def isBase64(str):
 
 def isInternetAvailable():
     try:
-        response = urllib2.urlopen('http://216.58.220.46', timeout=5)
+        urllib2.urlopen('http://216.58.220.46', timeout=5)
         return True
     except urllib2.URLError as err:
-        pass
+        try:
+            urllib2.urlopen('http://180.149.132.47', timeout=5)
+            return True
+        except urllib2.URLError as err1:
+            return False
     return False
 
 
@@ -327,3 +367,16 @@ def isDirExists(dir_path):
 
 def genRandom():
     return ''.join([random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)])
+
+
+def zipdir(path, zip_file):
+    """Zip a directory."""
+    try:
+        print "[INFO] Zipping"
+        # pylint: disable=unused-variable
+        # Needed by os.walk
+        for root, _sub_dir, files in os.walk(path):
+            for file_name in files:
+                zip_file.write(os.path.join(root, file_name))
+    except:
+        PrintException("[ERROR] Zipping")
