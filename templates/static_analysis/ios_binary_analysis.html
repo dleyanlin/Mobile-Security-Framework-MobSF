@@ -14,7 +14,7 @@
             <li><a href="#binary"><i class="fa fa-mobile"></i> Binary Analysis</a></li>
             <li><a href="#file"><i class="fa fa-file-text-o"></i> File Analysis</a></li>
             <li><a href="#libraries"><i class="glyphicon glyphicon-chevron-down"></i> Libraries</a></li>
-            <li><a href="#strings"><i class="fa fa-list"></i> View Strings</a>
+            <li><a href="#strings"><i class="fa fa-list"></i> Strings</a>
             <li><a href="#files"><i class="fa fa-files-o"></i> App Files</a></li>
             <!--<li><a target="_blank" href="../PDF/?md5={{ md5 }}&amp;type=IPA"><i class="glyphicon glyphicon-list-alt"></i> Download Report</a></li>
             <li><a href="javascript:document.getElementById('dynform').submit();"><i class="glyphicon glyphicon-play-circle""></i> <strong>Start Dynamic Analysis</strong></a></li>-->
@@ -217,8 +217,9 @@
          <div align="left">
             <a href="#install-app" class="btn btn-info" data-toggle="modal"><i class="glyphicon glyphicon-apple"></i> Install App</a>
             <a href="#uninstall-app" class="btn btn-primary" role="button" data-toggle="modal"><i class="glyphicon glyphicon-apple"></i> UnInstall App</a>
-            <a href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-certificate"></i> Certificate Manager</a>
-            <a href="../ViewHeadMemory/?&bundleid={{ id }}&file=readme.txt&md5={{ md5 }}" class="btn btn-warning" role="button"><i class="glyphicon glyphicon-file"></i> Install Certificate</a>
+            <a href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-play"></i> Run TA</a>
+            <!--<a href="../ViewKeyChain/" class="btn btn-success" role="button"><i class="glyphicon glyphicon-certificate"></i> Certificate Manager</a>-->
+            <a href="../ViewHeadMemory/?&bundleid={{ id }}&file=readme.txt&md5={{ md5 }}" class="btn btn-warning" role="button"><i class="glyphicon glyphicon-file"></i> Launch BurpSuite</a>
             <a href="../StaticAnalyzer_iOS/?checksum={{ md5 }}&amp;name={{ name }}&amp;type=ipa&amp;rescan=1" class="btn btn-info" role="button"><i class="glyphicon glyphicon-paste"></i> PastedBoard</a>
           </div>
           <br>
@@ -289,7 +290,7 @@
           <table class="table table-bordered table-hover table-striped">
               <thead>
                   <tr>
-                      <th>ISSUE</th>
+                      <th>Type</th>
                       <th>FILES</th>
                   </tr>
               </thead>

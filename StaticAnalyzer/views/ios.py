@@ -88,14 +88,13 @@ def StaticAnalyzer_iOS(request):
                     BIN_DIR=os.path.join(APP_DIR,"Payload/")
                     LOCAL_DATA_DIR=os.path.join(BIN_DIR,"AppData/")
                     LOCAL_KeyboardCache_DIR=os.path.join(BIN_DIR,"KeyboardCache/")
-                    UUID=DATADIR='No Analysis Application in device.'
                     #ANALYSIS BEGINS
                     SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
                     print "[INFO] Extracting IPA for analysis..."
                     Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    if RESCAN=='1': UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
+                    UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     #Saving to DB
@@ -751,7 +750,7 @@ def ViewKeyChain(request):
     context ={'title': 'KeyChain',
               'keychain_data': keychaindata
          }
-    template = "ios_keychain.html"
+    template = "static_analysis/ios_keychain.html"
     return render(request, template, context)
 
 def ListClassHeadFiles(SRC):
@@ -780,7 +779,7 @@ def ViewClassDump(request):
           'head_files': HEAD_FILES,
           'code': data
          }
-    template = "ios_class_dump.html"
+    template = "static_analysis/ios_class_dump.html"
     return render(request, template, context)
 
 def ViewHeadMemory(request):
@@ -808,7 +807,7 @@ def ViewHeadMemory(request):
           'memory_files': MEMORY_FILES,
           'memory_data': data
          }
-    template = "ios_head_memory.html"
+    template = "static_analysis/ios_head_memory.html"
     return render(request, template, context)
 
 def InstallUninstallApp(request):
@@ -834,15 +833,18 @@ def InstallUninstallApp(request):
 
 def anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
       print "[INFO] Start to analysis by connect to device..."
+      uu_id=app_data='Not find the Application in device. please install it and rescan'
       device=Device()
       if not device.have_installed(ID):
-          return
-      ver_in_device,uu_id,app_data=device.get_app_info(ID)
-      print "[INFO] The version of analysis ipa is "+str(VER)
-      if ver_in_device==VER:
-         device.sync_files(app_data+"/.",LOCAL_DATA_DIR)
-         device.get_keyboard_cache(LOCAL_KeyboardCache_DIR)
-         return uu_id,app_data
+          return uu_id,app_data
+      else:
+          ver_in_device,uu_id,app_data=device.get_app_info(ID)
+          print "[INFO] The version of in device %s --> ipa %s " % (ver_in_device,VER)
+          if ver_in_device==VER:
+             ver_in_device,uu_id,app_data=device.get_app_info(ID)
+             device.sync_files(app_data+"/.",LOCAL_DATA_DIR)
+             device.get_keyboard_cache(LOCAL_KeyboardCache_DIR)
+             return uu_id,app_data
       device.cleanup()
       device.disconnect()
       print "[INFO] End analysis by connect to device"
