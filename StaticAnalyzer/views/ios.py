@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.utils.html import escape
+from django.utils.encoding import smart_text
 from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip
 
 from StaticAnalyzer.models import StaticAnalyzerIPA, StaticAnalyzerIOSZIP
@@ -59,75 +60,81 @@ def StaticAnalyzer_iOS(request):
                 if DB.exists() and RESCAN=='0':
                     print "\n[INFO] Analysis is already Done. Fetching data from the DB..."
                     context = {
-                    'title' : DB[0].TITLE,
-                    'name' : DB[0].APPNAMEX,
-                    'size' : DB[0].SIZE,
-                    'md5': DB[0].MD5,
-                    'sha1' : DB[0].SHA1,
-                    'sha256' : DB[0].SHA256,
-                    'plist' : DB[0].INFOPLIST,
-                    'bin_name' : DB[0].BINNAME,
-                    'id' : DB[0].IDF,
-                    'uuid' : DB[0].UUID,
-                    'datadir' : DB[0].DATADIR,
-                    'ver' : DB[0].VERSION,
-                    'sdk' : DB[0].SDK,
-                    'pltfm' : DB[0].PLTFM,
-                    'min' : DB[0].MINX,
-                    'url_handlers' : DB[0].URL_HANDLERS,
-                    'bin_anal' : DB[0].BIN_ANAL,
-                    'libs' : DB[0].LIBS,
-                    'files' : python_list(DB[0].FILES),
-                    'file_analysis' : DB[0].SFILESX,
-                    'strings' : DB[0].STRINGS,
+                        'title': DB[0].TITLE,
+                        'name': DB[0].APPNAMEX,
+                        'size': DB[0].SIZE,
+                        'md5': DB[0].MD5,
+                        'sha1': DB[0].SHA1,
+                        'sha256': DB[0].SHA256,
+                        'plist': DB[0].INFOPLIST,
+                        'bin_name': DB[0].BINNAME,
+                        'id': DB[0].IDF,
+                        'uuid' : DB[0].UUID,
+                        'datadir' : DB[0].DATADIR,
+                        'ver': DB[0].VERSION,
+                        'sdk': DB[0].SDK,
+                        'pltfm': DB[0].PLTFM,
+                        'min': DB[0].MINX,
+                        'url_handlers' : DB[0].URL_HANDLERS,
+                        'bin_anal': DB[0].BIN_ANAL,
+                        'libs': DB[0].LIBS,
+                        'files': python_list(DB[0].FILES),
+                        'file_analysis': DB[0].SFILESX,
+                        'strings': python_list(DB[0].STRINGS),
+                        'permissions': python_list(DB[0].PERMISSIONS)
                     }
                 else:
                     print "[INFO] iOS Binary (IPA) Analysis Started"
-                    APP_FILE=MD5 + '.ipa'        #NEW FILENAME
-                    APP_PATH=APP_DIR+APP_FILE    #APP PATH
-                    BIN_DIR=os.path.join(APP_DIR,"Payload/")
+                    APP_FILE = MD5 + '.ipa'  # NEW FILENAME
+                    APP_PATH = APP_DIR + APP_FILE  # APP PATH
+                    BIN_DIR = os.path.join(APP_DIR, "Payload/")
                     LOCAL_DATA_DIR=os.path.join(BIN_DIR,"AppData/")
                     LOCAL_KeyboardCache_DIR=os.path.join(BIN_DIR,"KeyboardCache/")
-                    #ANALYSIS BEGINS
-                    SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
-                    SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
-                    print "[INFO] Extracting IPA for analysis..."
-                    Unzip(APP_PATH,APP_DIR)               #EXTRACT IPA
+                    # ANALYSIS BEGINS
+                    SIZE = str(FileSize(APP_PATH)) + 'MB'  # FILE SIZE
+                    SHA1, SHA256 = HashGen(APP_PATH)  # SHA1 & SHA256 HASHES
+                    print "[INFO] Extracting IPA"
+                    Unzip(APP_PATH, APP_DIR)  # EXTRACT IPA
+                    # Get Files, normalize + to x, and convert binary plist ->
+                    # xml
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
                     UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
-                    #Saving to DB
+                    # Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if RESCAN=='1':
                         print "\n[INFO] Updating Database..."
-                        StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,URL_HANDLERS=URL_HANDLERS,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
-                    elif RESCAN=='0':
+                        StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis', APPNAMEX=APP_NAME, SIZE=SIZE, MD5=MD5, SHA1=SHA1, SHA256=SHA256, INFOPLIST=INFO_PLIST,
+                                                                         BINNAME=BIN_NAME, IDF=ID, VERSION=VER, SDK=SDK, PLTFM=PLTFM, MINX=MIN, BIN_ANAL=BIN_ANAL, LIBS=LIBS, FILES=FILES, SFILESX=SFILES, STRINGS=STRINGS, PERMISSIONS=python_list(PERMISSIONS))
+                    elif RESCAN == '0':
                         print "\n[INFO] Saving to Database"
-                        STATIC_DB=StaticAnalyzerIPA(TITLE='Static Analysis',APPNAMEX=APP_NAME,SIZE=SIZE,MD5=MD5,SHA1=SHA1,SHA256=SHA256,INFOPLIST=INFO_PLIST,BINNAME=BIN_NAME,IDF=ID,UUID=UUID,DATADIR=DATADIR,VERSION=VER,SDK=SDK,PLTFM=PLTFM,MINX=MIN,URL_HANDLERS=URL_HANDLERS,BIN_ANAL=BIN_ANAL,LIBS=LIBS,FILES=FILES,SFILESX=SFILES,STRINGS=STRINGS)
+                        STATIC_DB = StaticAnalyzerIPA(TITLE='Static Analysis', APPNAMEX=APP_NAME, SIZE=SIZE, MD5=MD5, SHA1=SHA1, SHA256=SHA256, INFOPLIST=INFO_PLIST,
+                                                      BINNAME=BIN_NAME, IDF=ID, VERSION=VER, SDK=SDK, PLTFM=PLTFM, MINX=MIN, BIN_ANAL=BIN_ANAL, LIBS=LIBS, FILES=FILES, SFILESX=SFILES, STRINGS=STRINGS, PERMISSIONS=python_list(PERMISSIONS))
                         STATIC_DB.save()
                     context = {
-                    'title' : 'Static Analysis',
-                    'name' : APP_NAME,
-                    'size' : SIZE,
-                    'md5': MD5,
-                    'sha1' : SHA1,
-                    'sha256' : SHA256,
-                    'plist' : INFO_PLIST,
-                    'bin_name' : BIN_NAME,
-                    'id' : ID,
-                    'uuid' : UUID,
-                    'datadir' : DATADIR,
-                    'ver' : VER,
-                    'sdk' : SDK,
-                    'pltfm' : PLTFM,
-                    'min' : MIN,
-                    'url_handlers' : URL_HANDLERS,
-                    'bin_anal' : BIN_ANAL,
-                    'libs' : LIBS,
-                    'files' : FILES,
-                    'file_analysis' : SFILES,
-                    'strings' : STRINGS,
+                        'title': 'Static Analysis',
+                        'name': APP_NAME,
+                        'size': SIZE,
+                        'md5': MD5,
+                        'sha1': SHA1,
+                        'sha256': SHA256,
+                        'plist': INFO_PLIST,
+                        'bin_name': BIN_NAME,
+                        'id': ID,
+                        'uuid' : UUID,
+                        'datadir' : DATADIR,
+                        'ver': VER,
+                        'sdk': SDK,
+                        'pltfm': PLTFM,
+                        'min': MIN,
+                        'url_handlers' : URL_HANDLERS,
+                        'bin_anal': BIN_ANAL,
+                        'libs': LIBS,
+                        'files': FILES,
+                        'file_analysis': SFILES,
+                        'strings': STRINGS,
+                        'permissions': PERMISSIONS
                     }
                 template = "static_analysis/ios_binary_analysis.html"
                 return render(request, template, context)
@@ -136,29 +143,29 @@ def StaticAnalyzer_iOS(request):
                 if DB.exists() and RESCAN == '0':
                     print "\n[INFO] Analysis is already Done. Fetching data from the DB..."
                     context = {
-                    'title' : DB[0].TITLE,
-                    'name' : DB[0].APPNAMEX,
-                    'size' : DB[0].SIZE,
-                    'md5': DB[0].MD5,
-                    'sha1' : DB[0].SHA1,
-                    'sha256' : DB[0].SHA256,
-                    'plist' : DB[0].INFOPLIST,
-                    'bin_name' : DB[0].BINNAME,
-                    'id' : DB[0].IDF,
-                    'ver' : DB[0].VERSION,
-                    'sdk' : DB[0].SDK,
-                    'pltfm' : DB[0].PLTFM,
-                    'min' : DB[0].MINX,
-                    'bin_anal' : DB[0].BIN_ANAL,
-                    'libs' : DB[0].LIBS,
-                    'files' : python_list(DB[0].FILES),
-                    'file_analysis' : DB[0].SFILESX,
-                    'api' : DB[0].HTML,
-                    'insecure' : DB[0].CODEANAL,
-                    'urls' : DB[0].URLnFile,
-                    'domains': python_dict(DB[0].DOMAINS),
-                    'emails' : DB[0].EmailnFile,
-                    'strings' : DB[0].STRINGS
+                        'title': DB[0].TITLE,
+                        'name': DB[0].APPNAMEX,
+                        'size': DB[0].SIZE,
+                        'md5': DB[0].MD5,
+                        'sha1': DB[0].SHA1,
+                        'sha256': DB[0].SHA256,
+                        'plist': DB[0].INFOPLIST,
+                        'bin_name': DB[0].BINNAME,
+                        'id': DB[0].IDF,
+                        'ver': DB[0].VERSION,
+                        'sdk': DB[0].SDK,
+                        'pltfm': DB[0].PLTFM,
+                        'min': DB[0].MINX,
+                        'bin_anal': DB[0].BIN_ANAL,
+                        'libs': DB[0].LIBS,
+                        'files': python_list(DB[0].FILES),
+                        'file_analysis': DB[0].SFILESX,
+                        'api': DB[0].HTML,
+                        'insecure': DB[0].CODEANAL,
+                        'urls': DB[0].URLnFile,
+                        'domains': python_dict(DB[0].DOMAINS),
+                        'emails': DB[0].EmailnFile,
+                        'permissions': python_list(DB[0].PERMISSIONS),
                     }
                 else:
                     print "[INFO] iOS Source Code Analysis Started"
@@ -166,85 +173,89 @@ def StaticAnalyzer_iOS(request):
                     APP_PATH=APP_DIR+APP_FILE    #APP PATH
                     #ANALYSIS BEGINS - Already Unzipped
                     print "[INFO] ZIP Already Extracted"
-                    SIZE=str(FileSize(APP_PATH)) + 'MB'   #FILE SIZE
-                    SHA1, SHA256= HashGen(APP_PATH)       #SHA1 & SHA256 HASHES
-                    FILES,SFILES=iOS_ListFiles(APP_DIR,MD5,False,'ios')
-                    HTML,CODEANAL,URLnFile,DOMAINS,EmailnFile,INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN=iOS_Source_Analysis(APP_DIR,MD5)
-                    LIBS,BIN_ANAL='',''
-                    #Saving to DB
+                    SIZE = str(FileSize(APP_PATH)) + 'MB'  # FILE SIZE
+                    SHA1, SHA256 = HashGen(APP_PATH)  # SHA1 & SHA256 HASHES
+                    FILES, SFILES = iOS_ListFiles(APP_DIR, MD5, False, 'ios')
+                    HTML, CODEANAL, URLnFile, DOMAINS, EmailnFile, INFO_PLIST, BIN_NAME, ID, VER, SDK, PLTFM, MIN, PERMISSIONS = iOS_Source_Analysis(
+                        APP_DIR, MD5)
+                    LIBS, BIN_ANAL = '', ''
+                    # Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if RESCAN=='1':
                         print "\n[INFO] Updating Database..."
-                        StaticAnalyzerIOSZIP.objects.filter(MD5=MD5).update(TITLE = 'Static Analysis',
-                        APPNAMEX=APP_NAME,
-                        SIZE=SIZE,
-                        MD5=MD5,
-                        SHA1=SHA1,
-                        SHA256=SHA256,
-                        INFOPLIST=INFO_PLIST,
-                        BINNAME=BIN_NAME,
-                        IDF=ID,
-                        VERSION=VER,
-                        SDK=SDK,
-                        PLTFM=PLTFM,
-                        MINX=MIN,
-                        BIN_ANAL=BIN_ANAL,
-                        LIBS=LIBS,
-                        FILES=FILES,
-                        SFILESX=SFILES,
-                        HTML=HTML,
-                        CODEANAL=CODEANAL,
-                        URLnFile=URLnFile,
-                        DOMAINS=DOMAINS,
-                        EmailnFile=EmailnFile)
-                    elif RESCAN=='0':
+                        StaticAnalyzerIOSZIP.objects.filter(MD5=MD5).update(TITLE='Static Analysis',
+                                                                            APPNAMEX=APP_NAME,
+                                                                            SIZE=SIZE,
+                                                                            MD5=MD5,
+                                                                            SHA1=SHA1,
+                                                                            SHA256=SHA256,
+                                                                            INFOPLIST=INFO_PLIST,
+                                                                            BINNAME=BIN_NAME,
+                                                                            IDF=ID,
+                                                                            VERSION=VER,
+                                                                            SDK=SDK,
+                                                                            PLTFM=PLTFM,
+                                                                            MINX=MIN,
+                                                                            BIN_ANAL=BIN_ANAL,
+                                                                            LIBS=LIBS,
+                                                                            FILES=FILES,
+                                                                            SFILESX=SFILES,
+                                                                            HTML=HTML,
+                                                                            CODEANAL=CODEANAL,
+                                                                            URLnFile=URLnFile,
+                                                                            DOMAINS=DOMAINS,
+                                                                            EmailnFile=EmailnFile,
+                                                                            PERMISSIONS=PERMISSIONS)
+                    elif RESCAN == '0':
                         print "\n[INFO] Saving to Database"
-                        STATIC_DB=StaticAnalyzerIOSZIP(TITLE = 'Static Analysis',
-                        APPNAMEX=APP_NAME,
-                        SIZE=SIZE,
-                        MD5=MD5,
-                        SHA1=SHA1,
-                        SHA256=SHA256,
-                        INFOPLIST=INFO_PLIST,
-                        BINNAME=BIN_NAME,
-                        IDF=ID,
-                        VERSION=VER,
-                        SDK=SDK,
-                        PLTFM=PLTFM,
-                        MINX=MIN,
-                        BIN_ANAL=BIN_ANAL,
-                        LIBS=LIBS,
-                        FILES=FILES,
-                        SFILESX=SFILES,
-                        HTML=HTML,
-                        CODEANAL=CODEANAL,
-                        URLnFile=URLnFile,
-                        DOMAINS=DOMAINS,
-                        EmailnFile=EmailnFile)
+                        STATIC_DB = StaticAnalyzerIOSZIP(TITLE='Static Analysis',
+                                                         APPNAMEX=APP_NAME,
+                                                         SIZE=SIZE,
+                                                         MD5=MD5,
+                                                         SHA1=SHA1,
+                                                         SHA256=SHA256,
+                                                         INFOPLIST=INFO_PLIST,
+                                                         BINNAME=BIN_NAME,
+                                                         IDF=ID,
+                                                         VERSION=VER,
+                                                         SDK=SDK,
+                                                         PLTFM=PLTFM,
+                                                         MINX=MIN,
+                                                         BIN_ANAL=BIN_ANAL,
+                                                         LIBS=LIBS,
+                                                         FILES=FILES,
+                                                         SFILESX=SFILES,
+                                                         HTML=HTML,
+                                                         CODEANAL=CODEANAL,
+                                                         URLnFile=URLnFile,
+                                                         DOMAINS=DOMAINS,
+                                                         EmailnFile=EmailnFile,
+                                                         PERMISSIONS=PERMISSIONS)
                         STATIC_DB.save()
                     context = {
-                    'title' : 'Static Analysis',
-                    'name' : APP_NAME,
-                    'size' : SIZE,
-                    'md5': MD5,
-                    'sha1' : SHA1,
-                    'sha256' : SHA256,
-                    'plist' : INFO_PLIST,
-                    'bin_name' : BIN_NAME,
-                    'id' : ID,
-                    'ver' : VER,
-                    'sdk' : SDK,
-                    'pltfm' : PLTFM,
-                    'min' : MIN,
-                    'bin_anal' : BIN_ANAL,
-                    'libs' : LIBS,
-                    'files' : FILES,
-                    'file_analysis' : SFILES,
-                    'api' : HTML,
-                    'insecure' : CODEANAL,
-                    'urls' : URLnFile,
-                    'domains': DOMAINS,
-                    'emails' : EmailnFile
+                        'title': 'Static Analysis',
+                        'name': APP_NAME,
+                        'size': SIZE,
+                        'md5': MD5,
+                        'sha1': SHA1,
+                        'sha256': SHA256,
+                        'plist': INFO_PLIST,
+                        'bin_name': BIN_NAME,
+                        'id': ID,
+                        'ver': VER,
+                        'sdk': SDK,
+                        'pltfm': PLTFM,
+                        'min': MIN,
+                        'bin_anal': BIN_ANAL,
+                        'libs': LIBS,
+                        'files': FILES,
+                        'file_analysis': SFILES,
+                        'api': HTML,
+                        'insecure': CODEANAL,
+                        'urls': URLnFile,
+                        'domains': DOMAINS,
+                        'emails': EmailnFile,
+                        'permissions': PERMISSIONS,
                     }
                 template = "static_analysis/ios_source_analysis.html"
                 return render(request, template, context)
@@ -411,7 +422,146 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
     except:
         PrintException("[ERROR] iOS List Files")
 
-def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
+
+def __check_permissions(p_list):
+    '''Check the permissions the app requests.'''
+    # List taken from
+    # https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html
+    print "[INFO] Checking Permissions"
+    permissions = []
+    if "NSAppleMusicUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSAppleMusicUsageDescription",
+                "Access Apple Media Library.",
+                p_list["NSAppleMusicUsageDescription"]
+            )
+        )
+    if "NSBluetoothPeripheralUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSBluetoothPeripheralUsageDescription",
+                "Access Bluetooth Interface.",
+                p_list["NSBluetoothPeripheralUsageDescription"]
+            )
+        )
+    if "NSCalendarsUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSCalendarsUsageDescription",
+                "Access Calendars.",
+                p_list["NSCalendarsUsageDescription"]
+            )
+        )
+    if "NSCameraUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSCameraUsageDescription",
+                "Access the Camera.",
+                p_list["NSCameraUsageDescription"]
+            )
+        )
+    if "NSContactsUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSContactsUsageDescription",
+                "Access Contacts.",
+                p_list["NSContactsUsageDescription"]
+            )
+        )
+    if "NSHealthShareUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSHealthShareUsageDescription",
+                "Read Health Data.",
+                p_list["NSHealthShareUsageDescription"]
+            )
+        )
+    if "NSHealthUpdateUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSHealthUpdateUsageDescription",
+                "Write Health Data.",
+                p_list["NSHealthUpdateUsageDescription"]
+            )
+        )
+    if "NSHomeKitUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSHomeKitUsageDescription",
+                "Access HomeKit configuration data.",
+                p_list["NSHomeKitUsageDescription"]
+            )
+        )
+    if "NSLocationAlwaysUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSLocationAlwaysUsageDescription",
+                "Access location information at all times.",
+                p_list["NSLocationAlwaysUsageDescription"]
+            )
+        )
+    if "NSLocationUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSLocationUsageDescription",
+                "Access location information at all times (< iOS 8).",
+                p_list["NSLocationUsageDescription"]
+            )
+        )
+    if "NSLocationWhenInUseUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSLocationWhenInUseUsageDescription",
+                "Access location information when app is in the foreground.",
+                p_list["NSLocationWhenInUseUsageDescription"]
+            )
+        )
+    if "NSMicrophoneUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSMicrophoneUsageDescription",
+                "Access microphone.",
+                p_list["NSMicrophoneUsageDescription"]
+            )
+        )
+    if "NSMotionUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSMotionUsageDescription",
+                "Access the device’s accelerometer.",
+                p_list["NSMotionUsageDescription"]
+            )
+        )
+    if "NSPhotoLibraryUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSPhotoLibraryUsageDescription",
+                "Access the user’s photo library.",
+                p_list["NSPhotoLibraryUsageDescription"]
+            )
+        )
+    if "NSRemindersUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSRemindersUsageDescription",
+                "Access the user’s reminders.",
+                p_list["NSRemindersUsageDescription"]
+            )
+        )
+    if "NSVideoSubscriberAccountUsageDescription" in p_list:
+        permissions.append(
+            (
+                "NSVideoSubscriberAccountUsageDescription",
+                "Access the user’s TV provider account.",
+                p_list["NSVideoSubscriberAccountUsageDescription"]
+            )
+        )
+
+    return permissions
+
+
+def BinaryAnalysis(SRC, TOOLS_DIR, APP_DIR):
     try:
         print "[INFO] Starting Binary Analysis"
         dirs = os.listdir(SRC)
@@ -460,9 +610,13 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
             except:
                 URL_HANDLERS = None
 
+            # Check possible app-permissions
+            PERMISSIONS = __check_permissions(p)
+
         except:
             PrintException("[ERROR] - Reading from Info.plist")
-        BIN_PATH=os.path.join(BIN_DIR,BIN)  #Full Dir/Payload/x.app/x
+
+        BIN_PATH = os.path.join(BIN_DIR, BIN)  # Full Dir/Payload/x.app/x
         print "[INFO] iOS Binary : " + BIN
         print "[INFO] Running otool against the Binary"
         #Libs Used
@@ -471,13 +625,13 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
             OTOOL = settings.OTOOL_BINARY
         else:
             OTOOL = "otool"
-        args=[OTOOL,'-L',BIN_PATH]
-        dat=subprocess.check_output(args)
-        dat=escape(dat.replace(BIN_DIR + "/",""))
-        LIBS=dat.replace("\n","</br>")
-        #PIE
-        args=[OTOOL,'-hv',BIN_PATH]
-        dat=subprocess.check_output(args)
+        args = [OTOOL, '-L', BIN_PATH]
+        dat = unicode(subprocess.check_output(args), 'utf-8')
+        dat = smart_text(escape(dat.replace(BIN_DIR + "/", "")))
+        LIBS = dat.replace("\n", "</br>")
+        # PIE
+        args = [OTOOL, '-hv', BIN_PATH]
+        dat = subprocess.check_output(args)
         if "PIE" in dat:
             PIE= "<tr><td><strong>fPIE -pie</strong> flag is Found</td><td><span class='label label-success'>Secure</span></td><td>App is compiled with Position Independent Executable (PIE) flag. This enables Address Space Layout Randomization (ASLR), a memory protection mechanism for exploit mitigation.</td></tr>"
         else:
@@ -586,11 +740,12 @@ def BinaryAnalysis(SRC,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR):
         STRINGS = ""
         sl = list(strings(BIN_PATH))
         sl = set(sl)  # Make unique
-        sl = [s if isinstance(s, unicode) else unicode(s, encoding="utf-8", errors="replace") for s in sl]
-        sl = [escape(s) for s in sl]# Escape evil strings
-        STRINGS = "</br>".join(sl)
+        sl = [s if isinstance(s, unicode) else unicode(
+            s, encoding="utf-8", errors="replace") for s in sl]
+        sl = [escape(s) for s in sl]  # Escape evil strings
+        STRINGS = sl
 
-        return XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_RES,STRINGS
+        return XML, BIN_NAME, ID, VER, SDK, PLTFM, MIN,URL_HANDLERS, LIBS, BIN_RES, STRINGS, PERMISSIONS
     except:
         PrintException("[ERROR] iOS Binary Analysis")
 
@@ -598,17 +753,18 @@ def iOS_Source_Analysis(SRC,MD5):
     try:
         print "[INFO] Starting iOS Source Code and PLIST Analysis"
         ALLURLSLST = list()
-        DOMAINS = dict ()
-        APP=''
-        InfoP=''
-        BIN_NAME=''
-        BIN=''
-        ID=''
-        VER=''
-        SDK=''
-        PLTFM=''
-        MIN=''
-        XML=''
+        DOMAINS = dict()
+        APP = ''
+        InfoP = ''
+        BIN_NAME = ''
+        BIN = ''
+        ID = ''
+        VER = ''
+        SDK = ''
+        PLTFM = ''
+        MIN = ''
+        XML = ''
+
         for f in os.listdir(SRC):
             if f.endswith(".xcodeproj"):
                 APP=f.replace(".xcodeproj","")
@@ -618,21 +774,25 @@ def iOS_Source_Analysis(SRC,MD5):
                 if PlistFile in jfile:
                     InfoP=os.path.join(SRC,dirName,jfile)
                     break
-        with io.open(InfoP, mode='r',encoding="utf8",errors="ignore") as f:
-            XML=f.read()
-        p=plistlib.readPlistFromString(XML)
-        BIN_NAME=p["CFBundleDisplayName"]
-        BIN=p["CFBundleExecutable"]
-        ID=p["CFBundleIdentifier"]
-        VER=p["CFBundleVersion"]
-        SDK=''#p["DTSDKName"]
-        PLTFM=''#p["DTPlatformVersion"]
-        MIN=''#p["MinimumOSVersion"]
+        if isFileExists(InfoP):
+            with io.open(InfoP, mode='r', encoding="utf8", errors="ignore") as f:
+                XML = f.read()
+        if XML:
+            p = plistlib.readPlistFromString(XML)
+            BIN_NAME = p["CFBundleDisplayName"]
+            BIN = p["CFBundleExecutable"]
+            ID = p["CFBundleIdentifier"]
+            VER = p["CFBundleVersion"]
+            SDK = ''  # p["DTSDKName"]
+            PLTFM = ''  # p["DTPlatformVersion"]
+            MIN = ''  # p["MinimumOSVersion"]
+            PERMISSIONS = __check_permissions(p)
 
-        #Code Analysis
-        EmailnFile=''
-        URLnFile=''
-        c = {key: [] for key in ('i_buf','webv','i_log','net','i_sqlite','fileio','ssl_bypass','ssl_uiwebview','path_traversal')}
+        # Code Analysis
+        EmailnFile = ''
+        URLnFile = ''
+        c = {key: [] for key in ('i_buf', 'webv', 'i_log', 'net', 'i_sqlite',
+                                 'fileio', 'ssl_bypass', 'ssl_uiwebview', 'path_traversal')}
         for dirName, subDir, files in os.walk(SRC):
             for jfile in files:
                 if jfile.endswith(".m"):
@@ -737,7 +897,7 @@ def iOS_Source_Analysis(SRC,MD5):
 
                 dang+=hd+link+"</td></tr>"
 
-        return html,dang,URLnFile,DOMAINS,EmailnFile,XML,BIN_NAME,ID,VER,SDK,PLTFM,MIN
+        return html, dang, URLnFile, DOMAINS, EmailnFile, XML, BIN_NAME, ID, VER, SDK, PLTFM, MIN, PERMISSIONS
     except:
         PrintException("[ERROR] iOS Source Code Analysis")
 

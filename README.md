@@ -10,15 +10,15 @@ Mobile Security Framework (MobSF) is an intelligent, all-in-one open source mobi
 Made with <img src="https://cloud.githubusercontent.com/assets/4301109/16754758/82e3a63c-4813-11e6-9430-6015d98aeaab.png" alt="Love"> in India
 
 [![support](https://baikal.io/badges/ajinabraham/mobsf)](https://baikal.io/ajinabraham/mobsf) [![License](https://img.shields.io/:license-gpl3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![platform](https://img.shields.io/badge/platform-osx%2Flinux%2Fwindows-green.svg)](https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/)
+[![platform](https://img.shields.io/badge/platform-osx%2Flinux%2Fwindows-green.svg)](https://github.com/MobSF/Mobile-Security-Framework-MobSF/)
 [![python](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
 [![Code Issues](https://www.quantifiedcode.com/api/v1/project/d49e36d69236411bb854214737f6dfa1/badge.svg)](https://www.quantifiedcode.com/app/project/d49e36d69236411bb854214737f6dfa1)
 
-MobSF is also bundled with [Androdi Tamer](https://androidtamer.com/tamer4-release) and [BlackArch](https://blackarch.org/mobile.html)
+MobSF is also bundled with [Android Tamer](https://androidtamer.com/tamer4-release) and [BlackArch](https://blackarch.org/mobile.html)
 ## Documentation
-* https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/wiki/1.-Documentation
+* https://github.com/MobSF/Mobile-Security-Framework-MobSF/wiki/1.-Documentation
 
-##Collaborators
+## Collaborators
 
 * [Ajin Abraham](https://in.linkedin.com/in/ajinabraham)
 * [Dominik Schlecht](https://github.com/DominikSchlecht)
@@ -32,12 +32,13 @@ MobSF is also bundled with [Androdi Tamer](https://androidtamer.com/tamer4-relea
 * Automated Mobile Application Security Assessment with MobSF: https://opsecx.com/index.php/product/automated-mobile-application-security-assessment-with-mobsf/
 
 ## What's New?
-* See Changelog: https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/wiki/3.-Changelog
+* See Changelog: https://github.com/MobSF/Mobile-Security-Framework-MobSF/wiki/3.-Changelog
 
-## Feature Requests & Bugs
+## Contribution, Feature Requests & Bugs
 
 * Read [CONTRIBUTING.md](https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/blob/master/CONTRIBUTING.md) before opening bugs, feature requests and pull request.
 * Features Requests: [@ajinabraham](https://twitter.com/ajinabraham) or [@OpenSecurity_IN](https://twitter.com/OpenSecurity_IN). 
+* For discussions use our Slack Channel: https://mobsf.slack.com/ , Get Invitation: https://goo.gl/6cYU5a
 * Open Bugs after reading [Guidelines to Report a Bug](https://github.com/ajinabraham/Mobile-Security-Framework-MobSF/blob/master/CONTRIBUTING.md#using-the-issue-tracker)
 
 ## Screenshots
@@ -77,3 +78,5 @@ MobSF is also bundled with [Androdi Tamer](https://androidtamer.com/tamer4-relea
 * Anant Srivastava (@anantshri) - For Activity Tester Idea
 * Amrutha VC (@amruthavc) - For the new MobSF logo
 * Rahul (@c0dist) - Kali Support
+* shuxin - Android Binary Analysis
+* Esteban - Better Android Manifest Analysis and Static Analysis Improvement.

@@ -22,7 +22,7 @@ import install.windows.setup as windows_setup
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #==============================================
 
-MOBSF_VER = "v0.9.3.8 Beta"
+MOBSF_VER = "v0.9.3.9 Beta"
 BANNER = """
   __  __       _    ____  _____        ___   ___   _____
 
@@ -150,7 +150,8 @@ except NameError:
             Exception('Please create a %s file with random characters \
             to generate your secret key!' % SECRET_FILE)
         #Run Once
-        utils.Migrate(BASE_DIR)
+        utils.make_migrations(BASE_DIR)
+        utils.migrate(BASE_DIR)
         utils.kali_fix(BASE_DIR)
 
 #=============================================
@@ -383,9 +384,9 @@ else:
 
 # The below code should be loaded last.
 #============JAVA SETTINGS======================
-JAVA_PATH = utils.FindJava()
+JAVA_PATH = utils.FindJava(False)
 #===============================================
 
 #================VirtualBox Settings============
-VBOX = utils.FindVbox()
+VBOX = utils.FindVbox(False)
 #===============================================
