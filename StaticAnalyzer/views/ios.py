@@ -97,7 +97,7 @@ def StaticAnalyzer_iOS(request):
                     Unzip(APP_PATH, APP_DIR)  # EXTRACT IPA
                     # Get Files, normalize + to x, and convert binary plist ->
                     # xml
-                    INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
+                    INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS,PERMISSIONS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
                     UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
@@ -106,11 +106,11 @@ def StaticAnalyzer_iOS(request):
                     if RESCAN=='1':
                         print "\n[INFO] Updating Database..."
                         StaticAnalyzerIPA.objects.filter(MD5=MD5).update(TITLE='Static Analysis', APPNAMEX=APP_NAME, SIZE=SIZE, MD5=MD5, SHA1=SHA1, SHA256=SHA256, INFOPLIST=INFO_PLIST,
-                                                                         BINNAME=BIN_NAME, IDF=ID, VERSION=VER, SDK=SDK, PLTFM=PLTFM, MINX=MIN, BIN_ANAL=BIN_ANAL, LIBS=LIBS, FILES=FILES, SFILESX=SFILES, STRINGS=STRINGS, PERMISSIONS=python_list(PERMISSIONS))
+                                                                         BINNAME=BIN_NAME, IDF=ID, UUID=UUID, DATADIR=DATADIR, VERSION=VER, SDK=SDK, PLTFM=PLTFM, MINX=MIN, URL_HANDLERS=URL_HANDLERS, BIN_ANAL=BIN_ANAL, LIBS=LIBS, FILES=FILES, SFILESX=SFILES, STRINGS=STRINGS, PERMISSIONS=python_list(PERMISSIONS))
                     elif RESCAN == '0':
                         print "\n[INFO] Saving to Database"
                         STATIC_DB = StaticAnalyzerIPA(TITLE='Static Analysis', APPNAMEX=APP_NAME, SIZE=SIZE, MD5=MD5, SHA1=SHA1, SHA256=SHA256, INFOPLIST=INFO_PLIST,
-                                                      BINNAME=BIN_NAME, IDF=ID, VERSION=VER, SDK=SDK, PLTFM=PLTFM, MINX=MIN, BIN_ANAL=BIN_ANAL, LIBS=LIBS, FILES=FILES, SFILESX=SFILES, STRINGS=STRINGS, PERMISSIONS=python_list(PERMISSIONS))
+                                                      BINNAME=BIN_NAME, IDF=ID, UUID=UUID, DATADIR=DATADIR, VERSION=VER, SDK=SDK, PLTFM=PLTFM, MINX=MIN, URL_HANDLERS=URL_HANDLERS, BIN_ANAL=BIN_ANAL, LIBS=LIBS, FILES=FILES, SFILESX=SFILES, STRINGS=STRINGS, PERMISSIONS=python_list(PERMISSIONS))
                         STATIC_DB.save()
                     context = {
                         'title': 'Static Analysis',
@@ -561,7 +561,7 @@ def __check_permissions(p_list):
     return permissions
 
 
-def BinaryAnalysis(SRC, TOOLS_DIR, APP_DIR):
+def BinaryAnalysis(SRC, TOOLS_DIR, APP_DIR, CLASSDUMP_DIR):
     try:
         print "[INFO] Starting Binary Analysis"
         dirs = os.listdir(SRC)
@@ -740,11 +740,11 @@ def BinaryAnalysis(SRC, TOOLS_DIR, APP_DIR):
         STRINGS = ""
         sl = list(strings(BIN_PATH))
         sl = set(sl)  # Make unique
-        sl = [s if isinstance(s, unicode) else unicode(
-            s, encoding="utf-8", errors="replace") for s in sl]
+        sl = [s if isinstance(s, unicode) else unicode(s, encoding="utf-8", errors="replace") for s in sl]
         sl = [escape(s) for s in sl]  # Escape evil strings
         STRINGS = sl
 
+        print "[INFO] Return analysis valuse of Binary"
         return XML, BIN_NAME, ID, VER, SDK, PLTFM, MIN,URL_HANDLERS, LIBS, BIN_RES, STRINGS, PERMISSIONS
     except:
         PrintException("[ERROR] iOS Binary Analysis")
