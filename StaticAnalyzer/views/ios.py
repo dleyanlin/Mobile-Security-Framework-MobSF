@@ -953,13 +953,13 @@ def ViewHeadMemory(request):
     if ID !="":
        device=Device()
        device.dump_head_memory(ID,HEADMEMORY_DIR)
-       cmd='echo "Please select a memory file to check wheter have snsiteive data...">{}'.format(HEADMEMORY_DIR+"/gdb_dumps/"+ "readme.txt")
+       cmd='echo "Please select a memory file to check wheter have snsiteive data...">{}'.format(HEADMEMORY_DIR+ "readme.txt")
        subprocess.check_call(cmd, shell=True)
        device.cleanup()
        device.disconnect()
-    MEMORY_FILES=ListClassHeadFiles(HEADMEMORY_DIR+'gdb_dumps/')
+    MEMORY_FILES=ListClassHeadFiles(HEADMEMORY_DIR)
     try:
-        args=["strings",HEADMEMORY_DIR+'gdb_dumps/'+MEMORY_FILE]
+        args=["strings",HEADMEMORY_DIR+MEMORY_FILE]
         data=subprocess.check_output(args)
     except:
         PrintException("[ERROR] - Cannot read file")
