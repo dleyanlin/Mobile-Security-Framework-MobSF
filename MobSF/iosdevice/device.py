@@ -299,13 +299,21 @@ class Device(object):
         return app_ver,uuid,data_directory
 
     def get_keyboard_cache(self,LOCAL_KeyboardCache_DIR):
-        """get keyboard cache of device."""
+        """get keyboard cache from device."""
         self.printer.verbose("Start to get Keyobard cache data from device.")
         try:
             self.sync_files(Constants.KEYBOARD_CACHE+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
             self.sync_files(Constants.KEYBOARD_CACHE+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
         except:
             self.printer.error("Cannot sync the keyboard cache data.")
+
+    def get_cookies(self,LOCAL_COOKIES_DIR):
+        """get Cookies file from device."""
+        self.printer.verbose("Start to get cookies files from device.")
+        try:
+            self.sync_files(Constants.COOKIES_PATH,LOCAL_COOKIES_DIR)
+        except:
+            self.printer.error("Cannot sync the cookies files.")
 
     def dump_keychain(self):
         self.printer.verbose("Start to dump keychain data from device.")

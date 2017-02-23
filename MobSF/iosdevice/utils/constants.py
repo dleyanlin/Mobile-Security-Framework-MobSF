@@ -67,6 +67,7 @@ class Constants(object):
     DEVICE_PATH_FRIDA_CACHE  = '/Library/Caches/frida-*'
     DEVICE_PATH_HOSTS        = '/etc/hosts'
     KEYBOARD_CACHE           = '/var/mobile/Library/Keyboard/'
+    COOKIES_PATH             = '/var/mobile/Library/Cookies/'
 
     # DEVICE TOOLS
     FRIDA_PORT = 27042

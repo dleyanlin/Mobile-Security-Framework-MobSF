@@ -90,6 +90,7 @@ def StaticAnalyzer_iOS(request):
                     BIN_DIR = os.path.join(APP_DIR, "Payload/")
                     LOCAL_DATA_DIR=os.path.join(BIN_DIR,"AppData/")
                     LOCAL_KeyboardCache_DIR=os.path.join(BIN_DIR,"KeyboardCache/")
+                    LOCAL_COOKIES_DIR=os.path.join(BIN_DIR,"Cookies/")
                     # ANALYSIS BEGINS
                     SIZE = str(FileSize(APP_PATH)) + 'MB'  # FILE SIZE
                     SHA1, SHA256 = HashGen(APP_PATH)  # SHA1 & SHA256 HASHES
@@ -98,7 +99,7 @@ def StaticAnalyzer_iOS(request):
                     # Get Files, normalize + to x, and convert binary plist ->
                     # xml
                     INFO_PLIST,BIN_NAME,ID,VER,SDK,PLTFM,MIN,URL_HANDLERS,LIBS,BIN_ANAL,STRINGS,PERMISSIONS=BinaryAnalysis(BIN_DIR,TOOLS_DIR,APP_DIR,CLASSDUMP_DIR)
-                    UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR)
+                    UUID,DATADIR=anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,LOCAL_COOKIES_DIR)
                     #Get Files, normalize + to x, and convert binary plist -> xml
                     FILES,SFILES=iOS_ListFiles(BIN_DIR,MD5,True,'ipa')
                     # Saving to DB
@@ -331,6 +332,7 @@ def ViewFile(request):
     except:
         PrintException("[ERROR] View iOS File")
         return HttpResponseRedirect('/error/')
+
 def readBinXML(FILE):
     try:
         args=['plutil','-convert','xml1',FILE]
@@ -410,7 +412,7 @@ def iOS_ListFiles(SRC,MD5,BIN,MODE):
             log="<tr><td>Log Files</td><td>"+log+"</td></tr>"
             sfiles+=log
         if len(dat)>1:
-            dat="<tr><td>KeyBoard Cache</td><td>"+dat+"</td></tr>"
+            dat="<tr><td>Cache Files</td><td>"+dat+"</td></tr>"
             sfiles+=dat
         if len(plist)>1:
             plist="<tr><td>Plist Files</td><td>"+plist+"</td></tr>"
@@ -991,7 +993,7 @@ def InstallUninstallApp(request):
    except Exception,e:
         return HttpResponse(e)
 
-def anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
+def anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR,LOCAL_COOKIES_DIR):
       print "[INFO] Start to analysis by connect to device..."
       uu_id=app_data='Not find the Application in device. please install it and rescan'
       device=Device()
@@ -1004,6 +1006,7 @@ def anlysis_by_device(ID,LOCAL_DATA_DIR,VER,LOCAL_KeyboardCache_DIR):
              ver_in_device,uu_id,app_data=device.get_app_info(ID)
              device.sync_files(app_data+"/.",LOCAL_DATA_DIR)
              device.get_keyboard_cache(LOCAL_KeyboardCache_DIR)
+             device.get_cookies(LOCAL_COOKIES_DIR)
              return uu_id,app_data
       device.cleanup()
       device.disconnect()
