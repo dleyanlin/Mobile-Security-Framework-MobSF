@@ -248,6 +248,7 @@ def plist_analysis(src, is_source):
             plist_info["min"] = plist_obj["MinimumOSVersion"]
         if "NSAppTransportSecurity" in plist_obj: #App Transport Security value
             plist_info["ats"] = plist_obj["NSAppTransportSecurity"]["NSAllowsArbitraryLoads"]
+            print "[INFO] The NSALLOW is: %s" % plist_info["ats"]
         # Check possible app-permissions
         plist_info["permissions"] = __check_permissions(plist_obj)
         plist_info["inseccon"] = __check_insecure_connections(plist_obj)

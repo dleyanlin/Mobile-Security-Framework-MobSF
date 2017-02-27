@@ -101,7 +101,6 @@ def view_file(request):
                     file_format = 'plain'
                     args=['strings',sfile]
                     dat=subprocess.check_output(args)
-               '''
                 elif typ == 'txt' and fil == "classdump.txt":
                     file_format = 'plain'
                     app_dir = os.path.join(settings.UPLD_DIR, md5_hash + '/')
@@ -115,7 +114,6 @@ def view_file(request):
                             dat = flip.read()
                     else:
                         dat = "Class Dump not Found"
-                '''
         else:
             return HttpResponseRedirect('/error/')
         context = {'title': escape(ntpath.basename(fil)),
