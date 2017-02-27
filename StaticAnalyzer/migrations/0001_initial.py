@@ -112,6 +112,7 @@ class Migration(migrations.Migration):
                 ('SDK', models.TextField()),
                 ('PLTFM', models.TextField()),
                 ('MINX', models.TextField()),
+                ('URL_SCHEMES', models.TextField()),
                 ('BIN_ANAL', models.TextField()),
                 ('LIBS', models.TextField()),
                 ('FILES', models.TextField()),

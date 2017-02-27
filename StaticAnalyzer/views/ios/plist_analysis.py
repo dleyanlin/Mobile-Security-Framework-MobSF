@@ -188,6 +188,7 @@ def plist_analysis(src, is_source):
         plist_info["sdk"] = ""
         plist_info["pltfm"] = ""
         plist_info["min"] = ""
+        plist_info["url_schemes"] = []
         plist_info["plist_xml"] = ""
         plist_info["permissions"] = []
         plist_info["inseccon"] = []
@@ -247,11 +248,8 @@ def plist_analysis(src, is_source):
             plist_info["pltfm"] = plist_obj["DTPlatformVersion"]
         if "MinimumOSVersion" in plist_obj:
             plist_info["min"] = plist_obj["MinimumOSVersion"]
-        try:
-            plist_info["url_schemes"] = [url['CFBundleURLSchemes'][0] for url in plist_obj['CFBundleURLTypes']]
-            print "[INFO] The URL Schemes is: " + str(plist_info["url_schemes"])
-        except:
-            plist_info["urlschemes"] = "Not find URL Schemes"
+        if "CFBundleURLTypes" in plist_obj:
+            plist_info["url_schemes"] = plist_obj["CFBundleURLSchemes"][1]
         # Check possible app-permissions
         plist_info["permissions"] = __check_permissions(plist_obj)
         plist_info["inseccon"] = __check_insecure_connections(plist_obj)
