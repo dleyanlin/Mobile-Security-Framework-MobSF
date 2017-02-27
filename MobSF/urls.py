@@ -35,7 +35,7 @@ urlpatterns = [
     url(r'^StaticAnalyzer_iOS/$', StaticAnalyzer.views.ios.static_analyzer.static_analyzer_ios),
     #url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
     url(r'^ViewFile/$', StaticAnalyzer.views.ios.static_analyzer.view_file),
-    #url(r'^ViewClassDump/$', StaticAnalyzer.views.ios.ViewClassDump),
+    url(r'^ViewClassDump/$', StaticAnalyzer.views.ios.static_analyzer.view_dump_classes),
     #url(r'^InstallUninstallApp/$', StaticAnalyzer.views.ios.InstallUninstallApp),
     #url(r'^ViewKeyChain/$', StaticAnalyzer.views.ios.ViewKeyChain),
     #url(r'^ViewHeadMemory/$', StaticAnalyzer.views.ios.ViewHeadMemory),

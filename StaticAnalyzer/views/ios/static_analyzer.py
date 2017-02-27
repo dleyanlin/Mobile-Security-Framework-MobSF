@@ -327,3 +327,32 @@ def static_analyzer_ios(request):
         }
         template = "general/error.html"
         return render(request, template, context)
+
+def __list_class_head_files(src):
+    head_files=[]
+    for dirName, subDir, files in os.walk(src):
+        for jfile in files:
+            if not jfile.endswith(".DS_Store"):
+                head_files.append(jfile)
+    return head_files
+
+def view_dump_classes(request):
+    data=''
+    head_file = request.GET['file']
+    md5_hash = request.GET['md5']  #MD5
+    class_dump_dir = os.path.join(settings.UPLD_DIR, md5_hash + '/classdump/') #APP DIRECTORY
+    head_files = __list_class_head_files(class_dump_dir)
+    try:
+        class_file = os.path.join(class_dump_dir,head_file)
+        with io.open(class_file,mode='r',encoding="utf8",errors="ignore") as f:
+            data = f.read()
+    except:
+        PrintException("[ERROR] - Cannot read file")
+    context ={
+          'title': 'View Class Dump',
+          'md5': md5_hash,
+          'head_files': head_files,
+          'code': data
+         }
+    template = "static_analysis/ios_class_dump.html"
+    return render(request, template, context)
