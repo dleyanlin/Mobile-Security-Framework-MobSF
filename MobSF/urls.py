@@ -9,9 +9,10 @@ import StaticAnalyzer.views.android.smali
 import StaticAnalyzer.views.android.view_source
 import StaticAnalyzer.views.android.manifest_view
 import StaticAnalyzer.views.android.find
-import StaticAnalyzer.views.ios
+import StaticAnalyzer.views.ios.static_analyzer
 import StaticAnalyzer.views.shared_func
 import StaticAnalyzer.views.windows
+import StaticAnalyzer.tests
 from MobSF import utils
 
 
@@ -30,8 +31,10 @@ urlpatterns = [
 
     url(r'^StaticAnalyzer/$', StaticAnalyzer.views.android.static_analyzer.static_analyzer),
     url(r'^StaticAnalyzer_Windows/$', StaticAnalyzer.views.windows.staticanalyzer_windows),
-    url(r'^StaticAnalyzer_iOS/$', StaticAnalyzer.views.ios.StaticAnalyzer_iOS),
-    url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
+    #url(r'^StaticAnalyzer_iOS/$', StaticAnalyzer.views.ios.StaticAnalyzer_iOS),
+    url(r'^StaticAnalyzer_iOS/$', StaticAnalyzer.views.ios.static_analyzer.static_analyzer_ios),
+    #url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
+    url(r'^ViewFile/$', StaticAnalyzer.views.ios.static_analyzer.view_file),
     url(r'^ViewClassDump/$', StaticAnalyzer.views.ios.ViewClassDump),
     url(r'^InstallUninstallApp/$', StaticAnalyzer.views.ios.InstallUninstallApp),
     url(r'^ViewKeyChain/$', StaticAnalyzer.views.ios.ViewKeyChain),
@@ -64,6 +67,8 @@ urlpatterns = [
     url(r'^APIFuzzer/$', APITester.views.APIFuzzer),
     url(r'^StartScan/$', APITester.views.StartScan),
     url(r'^NoAPI/$', APITester.views.NoAPI),
+    #Test
+    url(r'^runtest/$', StaticAnalyzer.tests.start_test),
 ]
 
 utils.printMobSFverison()

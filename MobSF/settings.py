@@ -22,14 +22,13 @@ import install.windows.setup as windows_setup
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #==============================================
 
-MOBSF_VER = "v0.9.3.9 Beta"
+MOBSF_VER = "v0.9.4 Beta"
 BANNER = """
-  __  __       _    ____  _____        ___   ___   _____
-
- |  \/  | ___ | |__/ ___||  ___|_   __/ _ \ / _ \ |___ /
- | |\/| |/ _ \| '_ \___ \| |_  \ \ / / | | | (_) |  |_ \
- | |  | | (_) | |_) |__) |  _|  \ V /| |_| |\__, | ___) |
- |_|  |_|\___/|_.__/____/|_|     \_/  \___(_) /_(_)____/
+  __  __       _    ____  _____        ___   ___  _  _   
+ |  \/  | ___ | |__/ ___||  ___|_   __/ _ \ / _ \| || |
+ | |\/| |/ _ \| '_ \___ \| |_  \ \ / / | | | (_) | || |_
+ | |  | | (_) | |_) |__) |  _|  \ V /| |_| |\__, |__   _|
+ |_|  |_|\___/|_.__/____/|_|     \_/  \___(_) /_(_) |_|
 
 """
 #==============================================
@@ -162,7 +161,7 @@ except NameError:
 # ^ This is fine Do not turn it off until MobSF moves from Beta to Stable
 
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1','testserver', '*']
 # Application definition
 INSTALLED_APPS = (
     #'django.contrib.admin',

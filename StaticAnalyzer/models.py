@@ -76,6 +76,7 @@ class StaticAnalyzerIPA(models.Model):
     SFILESX = models.TextField()
     STRINGS = models.TextField()
     PERMISSIONS = models.TextField()
+    INSECCON = models.TextField()
 
 
 class StaticAnalyzerIOSZIP(models.Model):
@@ -92,8 +93,6 @@ class StaticAnalyzerIOSZIP(models.Model):
     SDK = models.TextField()
     PLTFM = models.TextField()
     MINX = models.TextField()
-    BIN_ANAL = models.TextField()
-    LIBS = models.TextField()
     FILES = models.TextField()
     SFILESX = models.TextField()
     HTML = models.TextField()
@@ -102,7 +101,7 @@ class StaticAnalyzerIOSZIP(models.Model):
     DOMAINS = models.TextField()
     EmailnFile = models.TextField()
     PERMISSIONS = models.TextField()
-
+    INSECCON = models.TextField()
 
 class StaticAnalyzerWindows(models.Model):
     TITLE = models.TextField()
