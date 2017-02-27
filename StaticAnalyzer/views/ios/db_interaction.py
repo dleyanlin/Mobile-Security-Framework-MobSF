@@ -30,6 +30,7 @@ def get_context_from_analysis_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             'sdk': info_dict["sdk"],
             'pltfm': info_dict["pltfm"],
             'min': info_dict["min"],
+            'url_schemes': info_dict["url_schemes"],
             'bin_anal': bin_dict["bin_res"],
             'libs': bin_dict["libs"],
             'files': files,
@@ -61,6 +62,7 @@ def get_context_from_db_entry_ipa(db_entry):
             'sdk': db_entry[0].SDK,
             'pltfm': db_entry[0].PLTFM,
             'min': db_entry[0].MINX,
+            'url_schemes': db_entry[0].URL_Schemes,
             'bin_anal': db_entry[0].BIN_ANAL,
             'libs': db_entry[0].LIBS,
             'files': python_list(db_entry[0].FILES),
@@ -92,6 +94,7 @@ def update_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             SDK=info_dict["sdk"],
             PLTFM=info_dict["pltfm"],
             MINX=info_dict["min"],
+            URL_Schemes=info_dict["url_schemes"],
             BIN_ANAL=bin_dict["bin_res"],
             LIBS=bin_dict["libs"],
             FILES=files,
@@ -122,6 +125,7 @@ def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             SDK=info_dict["sdk"],
             PLTFM=info_dict["pltfm"],
             MINX=info_dict["min"],
+            URL_Schemes=info_dict["url_schemes"],
             BIN_ANAL=bin_dict["bin_res"],
             LIBS=bin_dict["libs"],
             FILES=files,
@@ -135,7 +139,6 @@ def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
         PrintException("[ERROR] Saving to DB")
 
 # IOS ZIP DB ENTRY
-
 
 def get_context_from_analysis_ios(app_dict, info_dict,code_dict, files, sfiles):
     """Get the context for IOS ZIP from analysis results"""

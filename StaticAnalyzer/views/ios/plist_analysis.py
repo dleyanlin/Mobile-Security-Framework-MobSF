@@ -167,7 +167,9 @@ def __check_insecure_connections(p_list):
 
     if 'NSAppTransportSecurity' in p_list:
         ns_app_trans_dic = p_list['NSAppTransportSecurity']
-        if 'NSExceptionDomains' in ns_app_trans_dic:
+        if 'NSAllowsArbitraryLoads' in ns_app_trans_dic:
+            insecure_connections.append(ns_app_trans_dic['NSAllowsArbitraryLoads'])
+        elif 'NSExceptionDomains' in ns_app_trans_dic:
             for key in ns_app_trans_dic['NSExceptionDomains']:
                 insecure_connections.append(key)
 
@@ -186,7 +188,6 @@ def plist_analysis(src, is_source):
         plist_info["sdk"] = ""
         plist_info["pltfm"] = ""
         plist_info["min"] = ""
-        plist_info['ats'] = "" #add for check App Transport Security configure
         plist_info["plist_xml"] = ""
         plist_info["permissions"] = []
         plist_info["inseccon"] = []
@@ -246,9 +247,11 @@ def plist_analysis(src, is_source):
             plist_info["pltfm"] = plist_obj["DTPlatformVersion"]
         if "MinimumOSVersion" in plist_obj:
             plist_info["min"] = plist_obj["MinimumOSVersion"]
-        if "NSAppTransportSecurity" in plist_obj: #App Transport Security value
-            plist_info["ats"] = plist_obj["NSAppTransportSecurity"]["NSAllowsArbitraryLoads"]
-            print "[INFO] The NSALLOW is: %s" % plist_info["ats"]
+        try:
+            plist_info["url_schemes"] = [url['CFBundleURLSchemes'][0] for url in plist_obj['CFBundleURLTypes']]
+            print "[INFO] The URL Schemes is: " + str(plist_info["url_schemes"])
+        except:
+            plist_info["urlschemes"] = "Not find URL Schemes"
         # Check possible app-permissions
         plist_info["permissions"] = __check_permissions(plist_obj)
         plist_info["inseccon"] = __check_insecure_connections(plist_obj)
