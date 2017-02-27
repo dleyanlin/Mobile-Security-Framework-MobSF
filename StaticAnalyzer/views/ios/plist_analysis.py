@@ -249,7 +249,11 @@ def plist_analysis(src, is_source):
         if "MinimumOSVersion" in plist_obj:
             plist_info["min"] = plist_obj["MinimumOSVersion"]
         if "CFBundleURLTypes" in plist_obj:
-            plist_info["url_schemes"] = plist_obj["CFBundleURLSchemes"][1]
+            try:
+                plist_info["url_schemes"] = [url['CFBundleURLSchemes'][0] for url in plist_obj['CFBundleURLTypes']]
+                print "[INFO] URL Schemes is: " + str(plist_info["url_schemes"])
+            except:
+                plist_info["url_schemes"] = "No find"
         # Check possible app-permissions
         plist_info["permissions"] = __check_permissions(plist_obj)
         plist_info["inseccon"] = __check_insecure_connections(plist_obj)
