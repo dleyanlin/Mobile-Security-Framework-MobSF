@@ -9,6 +9,7 @@ import StaticAnalyzer.views.android.smali
 import StaticAnalyzer.views.android.view_source
 import StaticAnalyzer.views.android.manifest_view
 import StaticAnalyzer.views.android.find
+import StaticAnalyzer.views.ios.device_analysis
 import StaticAnalyzer.views.ios.static_analyzer
 import StaticAnalyzer.views.shared_func
 import StaticAnalyzer.views.windows
@@ -36,7 +37,7 @@ urlpatterns = [
     #url(r'^ViewFile/$', StaticAnalyzer.views.ios.ViewFile),
     url(r'^ViewFile/$', StaticAnalyzer.views.ios.static_analyzer.view_file),
     url(r'^ViewClassDump/$', StaticAnalyzer.views.ios.static_analyzer.view_classes),
-    #url(r'^InstallUninstallApp/$', StaticAnalyzer.views.ios.InstallUninstallApp),
+    url(r'^InstallUninstallApp/$', StaticAnalyzer.views.ios.device_analysis.install_uninstall_app),
     url(r'^ViewKeyChain/$', StaticAnalyzer.views.ios.static_analyzer.view_keychain),
     #url(r'^ViewHeadMemory/$', StaticAnalyzer.views.ios.ViewHeadMemory),
 

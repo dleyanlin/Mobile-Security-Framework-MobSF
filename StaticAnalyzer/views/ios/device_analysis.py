@@ -6,7 +6,30 @@ import re
 import os
 import subprocess
 
+from django.http import HttpResponse
+from django.conf import settings
 from MobSF.iosdevice.device import Device
+
+def install_uninstall_app(request):
+   try:
+        device = Device()
+        bundle_id = request.GET['identifier']
+        if bundle_id != "":
+            output = device.uninstall_app(bundle_id)
+        else:
+            app_file = request.GET['file']
+            md5_hash = request.GET['md5']
+            app_dir = os.path.join(settings.UPLD_DIR, md5_hash + '/' + app_file) #APP DIRECTORY
+            output = device.install_ipa(app_dir)
+        device.cleanup()
+        device.disconnect()
+        print "[INFO] output's value is %s" % output
+        if output == None:
+            return HttpResponse("Success")
+        else:
+            return HttpResponse("Failed,Please Re-try")
+   except Exception,e:
+        return HttpResponse(e)
 
 def get_metadata(bundle_id):
     app_metadata_dict = {}
