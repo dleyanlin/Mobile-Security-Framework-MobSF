@@ -37,7 +37,10 @@ def get_context_from_analysis_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             'file_analysis': sfiles,
             'strings': bin_dict["strings"],
             'permissions': info_dict["permissions"],
-            'insecure_connections': info_dict["inseccon"]
+            'insecure_connections': info_dict["inseccon"],
+            'uuid': app_dict["uuid"],
+            'data_dir': app_dict["data_directory"],
+            'arch': app_dict["architectures"]
         }
         return context
     except:
@@ -69,7 +72,10 @@ def get_context_from_db_entry_ipa(db_entry):
             'file_analysis': db_entry[0].SFILESX,
             'strings': python_list(db_entry[0].STRINGS),
             'permissions': python_list(db_entry[0].PERMISSIONS),
-            'insecure_connections': python_list(db_entry[0].INSECCON)
+            'insecure_connections': python_list(db_entry[0].INSECCON),
+            'uuid': db_entry[0].UUID,
+            'data_dir': db_entry[0].DATADIR,
+            'arch': db_entry[0].ARCH
         }
         return context
     except:
@@ -101,7 +107,10 @@ def update_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             SFILESX=sfiles,
             STRINGS=bin_dict["strings"],
             PERMISSIONS=info_dict["permissions"],
-            INSECCON=info_dict["inseccon"]
+            INSECCON=info_dict["inseccon"],
+            UUID=app_dict["uuid"],
+            DATADIR=app_dict["data_directory"],
+            ARCH=app_dict["architectures"]
         )
 
     except:
@@ -132,7 +141,10 @@ def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             SFILESX=sfiles,
             STRINGS=bin_dict["strings"],
             PERMISSIONS=info_dict["permissions"],
-            INSECCON=info_dict["inseccon"]
+            INSECCON=info_dict["inseccon"],
+            UUID=app_dict["uuid"],
+            DATADIR=app_dict["data_directory"],
+            ARCH=app_dict["architectures"]
         )
         static_db.save()
     except:

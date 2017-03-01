@@ -63,8 +63,6 @@ class StaticAnalyzerIPA(models.Model):
     INFOPLIST = models.TextField()
     BINNAME = models.TextField()
     IDF = models.TextField()
-    #UUID = models.TextField()
-    #DATADIR = models.TextField()
     VERSION = models.CharField(max_length=50)
     SDK = models.TextField()
     PLTFM = models.TextField()
@@ -77,6 +75,9 @@ class StaticAnalyzerIPA(models.Model):
     STRINGS = models.TextField()
     PERMISSIONS = models.TextField()
     INSECCON = models.TextField()
+    UUID = models.TextField()
+    DATADIR = models.TextField()
+    ARCH = models.TextField()
 
 
 class StaticAnalyzerIOSZIP(models.Model):

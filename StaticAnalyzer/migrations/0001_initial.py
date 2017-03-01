@@ -120,6 +120,9 @@ class Migration(migrations.Migration):
                 ('STRINGS', models.TextField()),
                 ('PERMISSIONS', models.TextField()),
                 ('INSECCON', models.TextField()),
+                ('UUID', models.TextField()),
+                ('DATADIR', models.TextField()),
+                ('ARCH', models.TextField()),
             ],
         ),
         migrations.CreateModel(

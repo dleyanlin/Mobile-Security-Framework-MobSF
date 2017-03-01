@@ -206,7 +206,7 @@ def class_dump_z(tools_dir, bin_path, app_dir):
         subprocess.call(["chmod", "777", class_dump_z_bin])
         dump_dir = os.path.join(app_dir, 'classdump/')
         readme_path = os.path.join(app_dir, 'classdump/' + "readme.txt")
-        print "[INFO] Dumping class to. " + str(dump_dir)
+        print "[INFO] Dumping classes to " + str(dump_dir)
         subprocess.call([class_dump_z_bin, "-H","-s", bin_path,"-o",dump_dir])
         cmd='echo "Please select a head file of function to analysis ...">{}'.format(readme_path)
         subprocess.check_call(cmd, shell=True)

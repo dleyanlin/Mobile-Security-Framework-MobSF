@@ -39,6 +39,10 @@ from StaticAnalyzer.views.ios.plist_analysis import (
     convert_bin_xml
 )
 
+from StaticAnalyzer.views.ios.device_analysis import (
+    get_metadata,
+    keychain_data
+)
 
 from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip
 from StaticAnalyzer.models import StaticAnalyzerIPA, StaticAnalyzerIOSZIP
@@ -264,6 +268,8 @@ def static_analyzer_ios(request):
                     files, sfiles = ios_list_files(app_dict["bin_dir"], app_dict["md5_hash"], True, 'ipa')
                     infoplist_dict = plist_analysis(app_dict["bin_dir"], False)
                     bin_analysis_dict = binary_analysis(app_dict["bin_dir"], tools_dir, app_dict["app_dir"])
+                    app_metadata_dict = get_metadata(infoplist_dict["id"])
+                    app_dict.update(app_metadata_dict)
                     # Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if rescan == '1':
@@ -336,7 +342,7 @@ def __list_class_head_files(src):
                 head_files.append(jfile)
     return head_files
 
-def view_dump_classes(request):
+def view_classes(request):
     data=''
     head_file = request.GET['file']
     md5_hash = request.GET['md5']  #MD5
@@ -355,4 +361,13 @@ def view_dump_classes(request):
           'code': data
          }
     template = "static_analysis/ios_class_dump.html"
+    return render(request, template, context)
+
+def view_keychain(request):
+    keychaindata = keychain_data()
+    #print keychaindata[1:]
+    context ={'title': 'KeyChain',
+              'keychain_data': keychaindata
+         }
+    template = "static_analysis/ios_keychain.html"
     return render(request, template, context)
