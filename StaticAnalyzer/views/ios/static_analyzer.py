@@ -8,6 +8,7 @@ import io
 import shutil
 import ntpath
 import sqlite3
+import subprocess
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
@@ -66,11 +67,10 @@ def view_file(request):
         mode = request.GET['mode']
         md5_match = re.match('^[0-9a-f]{32}$', md5_hash)
         ext = fil.split('.')[-1]
-        #ext_type = re.search("plist|db|sqlitedb|sqlite|txt|m", ext)
-        ext_type = re.search("plist|db|sqlitedb|sqlite|sql|log|dat|txt|m",ext)
+        ext_type = re.search("plist|db|sqlitedb|sqlite|sql|log|dat|txt|m", ext)
         if (md5_match and
                 ext_type and
-                re.findall('xml|db|txt|m', typ) and
+                re.findall('xml|db|txt|m|dat|log', typ) and
                 re.findall('ios|ipa', mode)
            ):
             if (("../" in fil) or
@@ -100,11 +100,11 @@ def view_file(request):
                 elif typ == 'log':
                     file_format = 'plain'
                     with io.open(sfile, mode='r', encoding="utf8", errors="ignore") as flip:
-                        dat=f.read()
+                        dat = flip.read()
                 elif typ == 'dat':
                     file_format = 'plain'
-                    args=['strings',sfile]
-                    dat=subprocess.check_output(args)
+                    args = ['strings',sfile]
+                    dat = subprocess.check_output(args)
                 elif typ == 'txt' and fil == "classdump.txt":
                     file_format = 'plain'
                     app_dir = os.path.join(settings.UPLD_DIR, md5_hash + '/')
