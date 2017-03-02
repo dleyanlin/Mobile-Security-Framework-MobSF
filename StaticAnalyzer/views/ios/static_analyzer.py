@@ -41,7 +41,8 @@ from StaticAnalyzer.views.ios.plist_analysis import (
 
 from StaticAnalyzer.views.ios.device_analysis import (
     get_metadata,
-    keychain_data
+    keychain_data,
+    get_app_data_cache,
 )
 
 from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip
@@ -80,8 +81,7 @@ def view_file(request):
                 return HttpResponseRedirect('/error/')
             else:
                 if mode == 'ipa':
-                    src = os.path.join(settings.UPLD_DIR,
-                                       md5_hash + '/Payload/')
+                    src = os.path.join(settings.UPLD_DIR, md5_hash + '/Payload/')
                 elif mode == 'ios':
                     src = os.path.join(settings.UPLD_DIR, md5_hash + '/')
                 sfile = os.path.join(src, fil)
@@ -196,7 +196,7 @@ def ios_list_files(src, md5_hash, binary_form, mode):
                     if re.search("log", ext):
                         log += "<a href='../ViewFile/?file="+ \
                            escape(fileparam) + "&type=log&mode=" + mode + "&md5=" + \
-                           md5_hash+"''> " + escape(fileparam) + " </a></br>"
+                           md5_hash + "''> " + escape(fileparam) + " </a></br>"
                     if re.search("dat", ext):
                         dat += "<a href='../ViewFile/?file=" + \
                            escape(fileparam) + "&type=dat&mode=" + mode + "&md5=" + \
@@ -265,11 +265,13 @@ def static_analyzer_ios(request):
                     Unzip(app_dict["app_path"], app_dict["app_dir"])
                     # Get Files, normalize + to x,
                     # and convert binary plist -> xml
-                    files, sfiles = ios_list_files(app_dict["bin_dir"], app_dict["md5_hash"], True, 'ipa')
                     infoplist_dict = plist_analysis(app_dict["bin_dir"], False)
-                    bin_analysis_dict = binary_analysis(app_dict["bin_dir"], tools_dir, app_dict["app_dir"])
                     app_metadata_dict = get_metadata(infoplist_dict["id"])
                     app_dict.update(app_metadata_dict)
+                    get_app_data_cache(app_dict["data_directory"] , app_dict["bin_dir"])
+                    files, sfiles = ios_list_files(app_dict["bin_dir"], app_dict["md5_hash"], True, 'ipa')
+                    bin_analysis_dict = binary_analysis(app_dict["bin_dir"], tools_dir, app_dict["app_dir"])
+
                     # Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if rescan == '1':

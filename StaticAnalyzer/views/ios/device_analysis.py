@@ -37,6 +37,12 @@ def get_metadata(bundle_id):
     app_metadata_dict = device.app.get_metadata(bundle_id)
     return app_metadata_dict
 
+def get_app_data_cache(app_data,local_dir):
+    device = Device()
+    device.remote_op.download(app_data+"/.",local_dir,recursive=True)
+    device.get_keyboard_cache(local_dir)
+    device.get_cookies(local_dir)
+
 def keychain_data():
     device = Device()
     keychaindata = device.dump_keychain()

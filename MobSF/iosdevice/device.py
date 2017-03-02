@@ -287,23 +287,12 @@ class Device(object):
             self.printer.verbose("The %s App not been installed" % app_name)
             return False
 
-    def get_app_info(self,app_name):
-        self.printer.verbose("Start to get %s App base information..." % app_name)
-        self._list_apps()
-        #if app_name in self._applist.keys():
-        metadata=self.app.get_metadata(app_name)
-        app_ver = metadata["app_version"].split(' ')[0]
-        uuid = metadata["uuid"]
-        data_directory = metadata["data_directory"]
-        self.printer.verbose("The %s App Version in device is %s" %(app_name,app_ver))
-        return app_ver,uuid,data_directory
-
     def get_keyboard_cache(self,LOCAL_KeyboardCache_DIR):
         """get keyboard cache from device."""
         self.printer.verbose("Start to get Keyobard cache data from device.")
         try:
-            self.sync_files(Constants.KEYBOARD_CACHE+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR)
-            self.sync_files(Constants.KEYBOARD_CACHE+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
+            self.remote_op.download(Constants.KEYBOARD_CACHE+"en-dynamic.lm/",LOCAL_KeyboardCache_DIR,recursive=True)
+            self.pull(Constants.KEYBOARD_CACHE+"dynamic-text.dat",LOCAL_KeyboardCache_DIR+".")
         except:
             self.printer.error("Cannot sync the keyboard cache data.")
 
@@ -311,7 +300,7 @@ class Device(object):
         """get Cookies file from device."""
         self.printer.verbose("Start to get cookies files from device.")
         try:
-            self.sync_files(Constants.COOKIES_PATH,LOCAL_COOKIES_DIR)
+            self.remote_op.download(Constants.COOKIES_PATH,LOCAL_COOKIES_DIR,recursive=True)
         except:
             self.printer.error("Cannot sync the cookies files.")
 
