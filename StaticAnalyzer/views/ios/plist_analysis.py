@@ -241,7 +241,9 @@ def plist_analysis(src, is_source):
         if "CFBundleIdentifier" in plist_obj:
             plist_info["id"] = plist_obj["CFBundleIdentifier"]
         if "CFBundleVersion" in plist_obj:
-            plist_info["ver"] = plist_obj["CFBundleVersion"]
+            app_version_long  = plist_obj['CFBundleVersion']
+            app_version_short = plist_obj['CFBundleShortVersionString']
+            plist_info["ver"] = app_version = '{} ({})'.format(app_version_long, app_version_short)
         if "DTSDKName" in plist_obj:
             plist_info["sdk"] = plist_obj["DTSDKName"]
         if "DTPlatformVersion" in plist_obj:

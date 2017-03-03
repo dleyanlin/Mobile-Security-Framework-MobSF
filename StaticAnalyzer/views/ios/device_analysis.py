@@ -32,10 +32,22 @@ def install_uninstall_app(request):
         return HttpResponse(e)
 
 def get_metadata(bundle_id):
+    """Install APP to device"""
     app_metadata_dict = {}
     device = Device()
     app_metadata_dict = device.app.get_metadata(bundle_id)
     return app_metadata_dict
+
+def install_app(ipa_file, bundle_id, ver):
+    """Install APP to device"""
+    device = Device()
+    if device.have_installed(bundle_id):
+        app_metadata_dict = device.app.get_metadata(bundle_id)
+        if ver != app_metadata_dict["app_version"]:
+            device.uninstall_app(bundle_id)
+            device.install_ipa(ipa_file)
+    else:
+        device.install_ipa(ipa_file)
 
 def get_app_data_cache(app_data,local_dir):
     device = Device()

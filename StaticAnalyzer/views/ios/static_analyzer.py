@@ -41,6 +41,7 @@ from StaticAnalyzer.views.ios.plist_analysis import (
 )
 
 from StaticAnalyzer.views.ios.device_analysis import (
+    install_app,
     get_metadata,
     keychain_data,
     get_app_data_cache,
@@ -260,12 +261,14 @@ def static_analyzer_ios(request):
                     app_dict["bin_dir"] = os.path.join(app_dict["app_dir"], "Payload/")
                     app_dict["size"] = str(FileSize(app_dict["app_path"])) + 'MB'  # FILE SIZE
                     app_dict["sha1"], app_dict["sha256"] = HashGen(app_dict["app_path"])  # SHA1 & SHA256 HASHES
+
                     print "[INFO] Extracting IPA"
                     # EXTRACT IPA
                     Unzip(app_dict["app_path"], app_dict["app_dir"])
                     # Get Files, normalize + to x,
                     # and convert binary plist -> xml
                     infoplist_dict = plist_analysis(app_dict["bin_dir"], False)
+                    install_app(app_dict["app_path"], infoplist_dict["id"], infoplist_dict["ver"])
                     app_metadata_dict = get_metadata(infoplist_dict["id"])
                     app_dict.update(app_metadata_dict)
                     get_app_data_cache(app_dict["data_directory"] , app_dict["bin_dir"])

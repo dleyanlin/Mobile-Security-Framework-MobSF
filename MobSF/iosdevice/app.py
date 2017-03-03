@@ -14,6 +14,7 @@ class App(object):
     # ==================================================================================================================
     def get_metadata(self, app_name):
         """Retrieve metadata of the target app."""
+        self._device.printer.verbose('Get metadata of App...')
         self._app = app_name
         if self._device._applist is None:
             self._device._list_apps()
