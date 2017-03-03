@@ -304,6 +304,12 @@ class Device(object):
         except:
             self.printer.error("Cannot sync the cookies files.")
 
+    def analyze_cookies(self, fname):
+        cmd = 'python {bin} {temp_file}'.format(bin=self._tools_local['BINARYCOOKIEREADER'], temp_file=fname)
+        out = self.local_op.command_interactive(cmd)
+        self.printer.verbose("COOKIES's value %s" % out)
+        return out
+
     def dump_keychain(self):
         self.printer.verbose("Start to dump keychain data from device.")
         keychaindata=''

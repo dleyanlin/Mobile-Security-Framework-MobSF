@@ -4,7 +4,6 @@
 
 import re
 import os
-import subprocess
 
 from django.http import HttpResponse
 from django.conf import settings
@@ -61,3 +60,8 @@ def keychain_data():
     device.cleanup()
     device.disconnect()
     return keychaindata
+
+def read_cookies(fname):
+    device = Device()
+    out = device.analyze_cookies(fname)
+    return out

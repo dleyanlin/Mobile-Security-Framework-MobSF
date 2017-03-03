@@ -45,6 +45,7 @@ from StaticAnalyzer.views.ios.device_analysis import (
     get_metadata,
     keychain_data,
     get_app_data_cache,
+    read_cookies,
 )
 
 from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip
@@ -68,10 +69,10 @@ def view_file(request):
         mode = request.GET['mode']
         md5_match = re.match('^[0-9a-f]{32}$', md5_hash)
         ext = fil.split('.')[-1]
-        ext_type = re.search("plist|db|sqlitedb|sqlite|sql|log|dat|txt|m", ext)
+        ext_type = re.search("plist|db|sqlitedb|sqlite|sql|log|dat|txt|m|binarycookies", ext)
         if (md5_match and
                 ext_type and
-                re.findall('xml|db|txt|m|dat|log', typ) and
+                re.findall('xml|db|txt|m|dat|log|cookies', typ) and
                 re.findall('ios|ipa', mode)
            ):
             if (("../" in fil) or
@@ -98,6 +99,9 @@ def view_file(request):
                 elif typ == 'db':
                     file_format = 'plain'
                     dat = read_sqlite(sfile)
+                elif typ == 'cookies':
+                    file_format = 'plain'
+                    dat = read_cookies(sfile)
                 elif typ == 'log':
                     file_format = 'plain'
                     with io.open(sfile, mode='r', encoding="utf8", errors="ignore") as flip:
@@ -174,6 +178,7 @@ def ios_list_files(src, md5_hash, binary_form, mode):
         database = ''
         log = ''
         dat = ''
+        cookies = ''
         plist = ''
         certz = ''
         for dirname, _, files in os.walk(src):
@@ -202,6 +207,10 @@ def ios_list_files(src, md5_hash, binary_form, mode):
                         dat += "<a href='../ViewFile/?file=" + \
                            escape(fileparam) + "&type=dat&mode=" + mode + "&md5=" + \
                            md5_hash + "''> " + escape(fileparam) + " </a></br>"
+                    if re.search("binarycookies", ext):
+                        cookies += "<a href='../ViewFile/?file=" + \
+                           escape(fileparam) + "&type=cookies&mode=" + mode + "&md5=" + \
+                           md5_hash + "''> " + escape(fileparam) + " </a></br>"
                     if jfile.endswith(".plist"):
                         if binary_form:
                             convert_bin_xml(file_path)
@@ -211,12 +220,15 @@ def ios_list_files(src, md5_hash, binary_form, mode):
         if len(database) > 1:
             database = "<tr><td>SQLite Files</td><td>" + database + "</td></tr>"
             sfiles += database
-        if len(log)>1:
+        if len(log) > 1:
             log="<tr><td>Log Files</td><td>"+log+"</td></tr>"
             sfiles += log
-        if len(dat)>1:
+        if len(dat) > 1:
             dat="<tr><td>Cache Files</td><td>"+dat+"</td></tr>"
             sfiles += dat
+        if len(cookies) > 1:
+            cookies="<tr><td>Cookies File</td><td>"+cookies+"</td></tr>"
+            sfiles += cookies
         if len(plist) > 1:
             plist = "<tr><td>Plist Files</td><td>" + plist + "</td></tr>"
             sfiles += plist

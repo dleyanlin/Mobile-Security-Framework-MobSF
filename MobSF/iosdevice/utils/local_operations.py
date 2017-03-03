@@ -108,7 +108,7 @@ class LocalOperations(object):
     def command_interactive(self, cmd):
         """Run an interactive command: which requires an interactive shell."""
         self.printer.debug("[LOCAL CMD] Local Interactive Command: %s" % cmd)
-        out = subprocess.call(cmd, shell=True)
+        out = subprocess.check_output(cmd, shell=True)
         return out
 
     def command_background_start(self, cmd):
