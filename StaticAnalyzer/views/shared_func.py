@@ -11,8 +11,10 @@ import zipfile
 import subprocess
 import platform
 import errno
-import pdfkit
-
+try:
+    import pdfkit
+except:
+    print "[WARNING] wkhtmltopdf is not installed/configured properly. PDF Report Generation is disabled"
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
 from django.template.loader import get_template
@@ -70,7 +72,7 @@ def Unzip(APP_PATH, EXT_PATH):
                 if not isinstance(filename, unicode):
                     filename = unicode(filename, encoding="utf-8", errors="replace")
                 files.append(filename)
-                z.extract(fileinfo, EXT_PATH)
+                z.extract(fileinfo, str(EXT_PATH))
         return files
     except:
         PrintException("[ERROR] Unzipping Error")
