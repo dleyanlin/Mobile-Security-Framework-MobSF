@@ -8,6 +8,13 @@ import os
 from django.http import HttpResponse
 from django.conf import settings
 from MobSF.iosdevice.device import Device
+from MobSF.iosdevice.utils.constants import Constants
+from MobSF.iosdevice.utils.local_operations import LocalOperations
+from MobSF.iosdevice.utils.printer import Printer
+
+
+local_op = LocalOperations()
+printer = Printer()
 
 def install_uninstall_app(request):
    try:
@@ -62,6 +69,7 @@ def keychain_data():
     return keychaindata
 
 def read_cookies(fname):
-    device = Device()
-    out = device.analyze_cookies(fname)
+    cmd = 'python {bin} {temp_file}'.format(bin=Constants.PATH_TOOLS_LOCAL['BINARYCOOKIEREADER'], temp_file=fname)
+    out = local_op.command_interactive(cmd)
+    printer.verbose("COOKIES's value %s" % out)
     return out
