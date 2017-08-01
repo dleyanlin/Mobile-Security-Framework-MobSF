@@ -1,5 +1,6 @@
 from django.conf.urls import url
 import MobSF.views
+import MobSF.rest_api
 import APITester.views
 import DynamicAnalyzer.views.android.android_dynamic
 import DynamicAnalyzer.views.android_standalone
@@ -44,7 +45,7 @@ urlpatterns = [
     #url(r'^ViewHeadMemory/$', StaticAnalyzer.views.ios.ViewHeadMemory),
 
     url(r'^ViewSource/$', StaticAnalyzer.views.android.view_source.run),
-    url(r'^PDF/$', StaticAnalyzer.views.shared_func.PDF),
+    url(r'^PDF/$', StaticAnalyzer.views.shared_func.pdf),
     url(r'^Smali/$', StaticAnalyzer.views.android.smali.run),
     url(r'^Java/$', StaticAnalyzer.views.android.java.run),
     url(r'^Find/$', StaticAnalyzer.views.android.find.run),
@@ -73,8 +74,15 @@ urlpatterns = [
     url(r'^APIFuzzer/$', APITester.views.APIFuzzer),
     url(r'^StartScan/$', APITester.views.StartScan),
     url(r'^NoAPI/$', APITester.views.NoAPI),
+    #REST API
+    url(r'^api/v1/upload$', MobSF.rest_api.api_upload),
+    url(r'^api/v1/scan$', MobSF.rest_api.api_scan),
+    url(r'^api/v1/delete_scan$', MobSF.rest_api.api_delete_scan),
+    url(r'^api/v1/download_pdf$', MobSF.rest_api.api_pdf_report),
     # Test
     url(r'^runtest/$', StaticAnalyzer.tests.start_test),
+    url(r'^runapitest/$', StaticAnalyzer.tests.start_api_test),
+
 ]
 
 utils.printMobSFverison()

@@ -19,15 +19,16 @@ from django.conf import settings
 from django.template.defaulttags import register
 
 from MobSF.utils import (
+    print_n_send_error_response,
     PrintException,
     zipdir
 )
 
 from StaticAnalyzer.models import StaticAnalyzerAndroid
 from StaticAnalyzer.views.shared_func import (
-    FileSize,
-    HashGen,
-    Unzip
+    file_size,
+    hash_gen,
+    unzip
 )
 
 from StaticAnalyzer.views.android.db_interaction import (
@@ -67,34 +68,42 @@ def key(data, key_name):
     return data.get(key_name)
 
 
-def static_analyzer(request):
+def static_analyzer(request, api=False):
     """Do static analysis on an request and save to db."""
     try:
+        if api:
+            typ = request.POST['scan_type']
+            checksum = request.POST['hash']
+            filename = request.POST['file_name']
+            rescan = str(request.POST.get('re_scan', 0))
+        else:
+            typ = request.GET['type']
+            checksum = request.GET['checksum']
+            filename = request.GET['name']
+            rescan = str(request.GET.get('rescan', 0))
         # Input validation
-        app_dic = {}
-        typ = request.GET['type']
-        # output = request.GET['format'] # Later for json output
-        match = re.match('^[0-9a-f]{32}$', request.GET['checksum'])
+        app_dic = {}     
+        match = re.match('^[0-9a-f]{32}$', checksum)
         if (
                 (
                     match
                 ) and (
-                    request.GET['name'].lower().endswith('.apk') or
-                    request.GET['name'].lower().endswith('.zip')
+                    filename.lower().endswith('.apk') or
+                    filename.lower().endswith('.zip')
                 ) and (
                     typ in ['zip', 'apk']
                 )
         ):
             app_dic['dir'] = settings.BASE_DIR  # BASE DIR
-            app_dic['app_name'] = request.GET['name']  # APP ORGINAL NAME
-            app_dic['md5'] = request.GET['checksum']  # MD5
+            app_dic['app_name'] = filename  # APP ORGINAL NAME
+            app_dic['md5'] = checksum # MD5
             app_dic['app_dir'] = os.path.join(settings.UPLD_DIR, app_dic[
                                               'md5'] + '/')  # APP DIRECTORY
             app_dic['tools_dir'] = os.path.join(
                 app_dic['dir'], 'StaticAnalyzer/tools/')  # TOOLS DIR
             # DWD_DIR = settings.DWD_DIR # not needed? Var is never used.
             print "[INFO] Starting Analysis on : " + app_dic['app_name']
-            rescan = str(request.GET.get('rescan', 0))
+            
             if typ == 'apk':
                 # Check if in DB
                 # pylint: disable=E1101
@@ -110,11 +119,11 @@ def static_analyzer(request):
 
                     # ANALYSIS BEGINS
                     app_dic['size'] = str(
-                        FileSize(app_dic['app_path'])) + 'MB'  # FILE SIZE
+                        file_size(app_dic['app_path'])) + 'MB'  # FILE SIZE
                     app_dic['sha1'], app_dic[
-                        'sha256'] = HashGen(app_dic['app_path'])
+                        'sha256'] = hash_gen(app_dic['app_path'])
 
-                    app_dic['files'] = Unzip(
+                    app_dic['files'] = unzip(
                         app_dic['app_path'], app_dic['app_dir'])
                     app_dic['certz'] = get_hardcoded_cert_keystore(app_dic[
                                                                    'files'])
@@ -150,14 +159,13 @@ def static_analyzer(request):
                     cert_dic = cert_info(
                         app_dic['app_dir'], app_dic['tools_dir'])
                     apkid_results = apkid_analysis(app_dic[
-                              'app_dir'])
+                        'app_dir'])
                     dex_2_jar(app_dic['app_path'], app_dic[
                               'app_dir'], app_dic['tools_dir'])
                     dex_2_smali(app_dic['app_dir'], app_dic['tools_dir'])
                     jar_2_java(app_dic['app_dir'], app_dic['tools_dir'])
                     code_an_dic = code_analysis(
                         app_dic['app_dir'],
-                        app_dic['md5'],
                         man_an_dic['permissons'],
                         "apk"
                     )
@@ -208,9 +216,13 @@ def static_analyzer(request):
                         bin_an_buff,
                         apkid_results,
                     )
-                context['dynamic_analysis_done'] = os.path.exists(os.path.join(app_dic['app_dir'], 'logcat.txt'))
+                context['dynamic_analysis_done'] = os.path.exists(
+                    os.path.join(app_dic['app_dir'], 'logcat.txt'))
                 template = "static_analysis/static_analysis.html"
-                return render(request, template, context)
+                if api:
+                    return context
+                else:
+                    return render(request, template, context)
             elif typ == 'zip':
                 # Check if in DB
                 # pylint: disable=E1101
@@ -220,7 +232,7 @@ def static_analyzer(request):
                 bin_an_buff = []
                 app_dic['strings'] = ''
                 app_dic['zipped'] = ''
-                #Above fields are only available for APK and not ZIP
+                # Above fields are only available for APK and not ZIP
                 db_entry = StaticAnalyzerAndroid.objects.filter(
                     MD5=app_dic['md5'])
                 if db_entry.exists() and rescan == '0':
@@ -231,25 +243,29 @@ def static_analyzer(request):
                     app_dic['app_path'] = app_dic['app_dir'] + \
                         app_dic['app_file']  # APP PATH
                     print "[INFO] Extracting ZIP"
-                    app_dic['files'] = Unzip(
+                    app_dic['files'] = unzip(
                         app_dic['app_path'], app_dic['app_dir'])
                     # Check if Valid Directory Structure and get ZIP Type
                     pro_type, valid = valid_android_zip(app_dic['app_dir'])
                     if valid and pro_type == 'ios':
                         print "[INFO] Redirecting to iOS Source Code Analyzer"
-                        return HttpResponseRedirect(
-                            '/StaticAnalyzer_iOS/?name=' + app_dic['app_name'] +
-                            '&type=ios&checksum=' + app_dic['md5']
-                        )
+                        if api:
+                            return {"type": "ios"}
+                        else:
+                            return HttpResponseRedirect(
+                                '/StaticAnalyzer_iOS/?name=' + app_dic['app_name'] +
+                                '&type=ios&checksum=' + app_dic['md5']
+                            )
                     app_dic['certz'] = get_hardcoded_cert_keystore(app_dic[
                                                                    'files'])
+                    app_dic['zipped'] = pro_type
                     print "[INFO] ZIP Type - " + pro_type
                     if valid and (pro_type in ['eclipse', 'studio']):
                         # ANALYSIS BEGINS
                         app_dic['size'] = str(
-                            FileSize(app_dic['app_path'])) + 'MB'  # FILE SIZE
+                            file_size(app_dic['app_path'])) + 'MB'  # FILE SIZE
                         app_dic['sha1'], app_dic[
-                            'sha256'] = HashGen(app_dic['app_path'])
+                            'sha256'] = hash_gen(app_dic['app_path'])
 
                         # Manifest XML
                         app_dic['persed_xml'] = get_manifest(
@@ -274,7 +290,6 @@ def static_analyzer(request):
 
                         code_an_dic = code_analysis(
                             app_dic['app_dir'],
-                            app_dic['md5'],
                             man_an_dic['permissons'],
                             pro_type
                         )
@@ -315,23 +330,33 @@ def static_analyzer(request):
                             {},
                         )
                     else:
-                        return HttpResponseRedirect('/zip_format/')
+                        msg = "This ZIP Format is not supported"
+                        if api:
+                            return print_n_send_error_response(request, msg, True)
+                        else:
+                            print_n_send_error_response(request, msg, False)
+                            return HttpResponseRedirect('/zip_format/')
                 template = "static_analysis/static_analysis_android_zip.html"
-                return render(request, template, context)
+                if api:
+                    return context     
+                else:
+                    return render(request, template, context)
             else:
                 print "\n[ERROR] Only APK,IPA and Zipped Android/iOS Source code supported now!"
         else:
-            return HttpResponseRedirect('/error/')
+            msg = "Hash match failed or Invalid file extension or file type"
+            if api:
+                return print_n_send_error_response(request, msg, True)
+            else:
+                return print_n_send_error_response(request, msg, False)
 
     except Exception as excep:
-        PrintException("[ERROR] Static Analyzer")
-        context = {
-            'title': 'Error',
-            'exp': excep.message,
-            'doc': excep.__doc__
-        }
-        template = "general/error.html"
-        return render(request, template, context)
+        msg = str(excep)
+        exp = excep.__doc__
+        if api:
+            return print_n_send_error_response(request, msg, True, exp)
+        else:
+            return print_n_send_error_response(request, msg, False, exp)
 
 
 def valid_android_zip(app_dir):

@@ -48,11 +48,18 @@ from StaticAnalyzer.views.ios.device_analysis import (
     read_cookies,
 )
 
-from StaticAnalyzer.views.shared_func import FileSize, HashGen, Unzip
+from StaticAnalyzer.views.shared_func import (
+    file_size,
+    hash_gen,
+    unzip
+)
 from StaticAnalyzer.models import StaticAnalyzerIPA, StaticAnalyzerIOSZIP
 
-from MobSF.utils import PrintException, isFileExists
-
+from MobSF.utils import (
+    print_n_send_error_response,
+    PrintException,
+    isFileExists
+)
 
 ##############################################################
 # Code to support iOS Static Code Analysis
@@ -74,12 +81,12 @@ def view_file(request):
                 ext_type and
                 re.findall('xml|db|txt|m|dat|log|cookies', typ) and
                 re.findall('ios|ipa', mode)
-           ):
+            ):
             if (("../" in fil) or
                     ("%2e%2e" in fil) or
                     (".." in fil) or
-                    ("%252e" in fil)
-               ):
+                ("%252e" in fil)
+                ):
                 return HttpResponseRedirect('/error/')
             else:
                 if mode == 'ipa':
@@ -119,7 +126,7 @@ def view_file(request):
                                      mode='r',
                                      encoding="utf8",
                                      errors="ignore"
-                                    ) as flip:
+                                     ) as flip:
                             dat = flip.read()
                     else:
                         dat = "Class Dump not Found"
@@ -153,8 +160,8 @@ def read_sqlite(sqlite_file):
             head = ''
             for row in rows:
                 head += str(row[1]).decode('utf8', 'ignore') + " | "
-            data += head + " \n========================================"+\
-            "=============================\n"
+            data += head + " \n========================================" +\
+                "=============================\n"
             cur.execute("SELECT * FROM '%s'" % table)
             rows = cur.fetchall()
             for row in rows:
@@ -198,6 +205,7 @@ def ios_list_files(src, md5_hash, binary_form, mode):
                     if re.search("db|sqlitedb|sqlite|sql", ext):
                         database += "<a href='../ViewFile/?file=" + \
                             escape(fileparam) + "&type=db&mode=" + mode + "&md5=" + \
+<<<<<<< HEAD
                             md5_hash + "''> " + escape(fileparam) + " </a></br>"
                     if re.search("log", ext):
                         log += "<a href='../ViewFile/?file="+ \
@@ -211,12 +219,17 @@ def ios_list_files(src, md5_hash, binary_form, mode):
                         cookies += "<a href='../ViewFile/?file=" + \
                            escape(fileparam) + "&type=cookies&mode=" + mode + "&md5=" + \
                            md5_hash + "''> " + escape(fileparam) + " </a></br>"
+=======
+                            md5_hash + "''> " + \
+                            escape(fileparam) + " </a></br>"
+>>>>>>> upstream/master
                     if jfile.endswith(".plist"):
                         if binary_form:
                             convert_bin_xml(file_path)
                         plist += "<a href='../ViewFile/?file=" + \
                             escape(fileparam) + "&type=xml&mode=" + mode + "&md5=" + \
-                            md5_hash + "''> " + escape(fileparam) + " </a></br>"
+                            md5_hash + "''> " + \
+                            escape(fileparam) + " </a></br>"
         if len(database) > 1:
             database = "<tr><td>SQLite Files</td><td>" + database + "</td></tr>"
             sfiles += database
@@ -241,25 +254,43 @@ def ios_list_files(src, md5_hash, binary_form, mode):
         PrintException("[ERROR] iOS List Files")
 
 
-def static_analyzer_ios(request):
+def static_analyzer_ios(request, api=False):
     """Module that performs iOS IPA/ZIP Static Analysis"""
     try:
         print "[INFO] iOS Static Analysis Started"
-        file_type = request.GET['type']
-        rescan = str(request.GET.get('rescan', 0))
-        md5_match = re.match('^[0-9a-f]{32}$', request.GET['checksum'])
+        if api:
+            file_type = request.POST['scan_type']
+            checksum = request.POST['hash']
+            rescan = str(request.POST.get('re_scan', 0))
+            filename = request.POST['file_name']
+        else:
+            file_type = request.GET['type']
+            checksum = request.GET['checksum']
+            rescan = str(request.GET.get('rescan', 0))
+            filename = request.GET['name']
+        
+        md5_match = re.match('^[0-9a-f]{32}$', checksum)
         if ((md5_match) and
-                (request.GET['name'].lower().endswith('.ipa') or
-                 request.GET['name'].lower().endswith('.zip')
-                ) and
+                (filename.lower().endswith('.ipa') or
+                 filename.lower().endswith('.zip')
+                 ) and
                 (file_type in ['ipa', 'ios'])
-           ):
+            ):
             app_dict = {}
             app_dict["directory"] = settings.BASE_DIR  # BASE DIR
+<<<<<<< HEAD
             app_dict["app_name"] = request.GET['name']  # APP ORGINAL NAME
             app_dict["md5_hash"] = request.GET['checksum']  # MD5
             app_dict["app_dir"] = os.path.join(settings.UPLD_DIR, app_dict["md5_hash"] + '/')  # APP DIRECTORY
             tools_dir = os.path.join(app_dict["directory"], 'StaticAnalyzer/tools/mac/')  # TOOLS DIR
+=======
+            app_dict["app_name"] = filename  # APP ORGINAL NAME
+            app_dict["md5_hash"] = checksum  # MD5
+            app_dict["app_dir"] = os.path.join(
+                settings.UPLD_DIR, app_dict["md5_hash"] + '/')  # APP DIRECTORY
+            tools_dir = os.path.join(
+                app_dict["directory"], 'StaticAnalyzer/tools/mac/')  # TOOLS DIR
+>>>>>>> upstream/master
             if file_type == 'ipa':
                 # DB
                 ipa_db = StaticAnalyzerIPA.objects.filter(
@@ -268,15 +299,28 @@ def static_analyzer_ios(request):
                     context = get_context_from_db_entry_ipa(ipa_db)
                 else:
                     print "[INFO] iOS Binary (IPA) Analysis Started"
+<<<<<<< HEAD
                     app_dict["app_file"] = app_dict["md5_hash"] + '.ipa'  # NEW FILENAME
                     app_dict["app_path"] = app_dict["app_dir"] + app_dict["app_file"]  # APP PATH
                     app_dict["bin_dir"] = os.path.join(app_dict["app_dir"], "Payload/")
                     app_dict["size"] = str(FileSize(app_dict["app_path"])) + 'MB'  # FILE SIZE
                     app_dict["sha1"], app_dict["sha256"] = HashGen(app_dict["app_path"])  # SHA1 & SHA256 HASHES
 
+=======
+                    app_dict["app_file"] = app_dict[
+                        "md5_hash"] + '.ipa'  # NEW FILENAME
+                    app_dict["app_path"] = app_dict["app_dir"] + \
+                        app_dict["app_file"]  # APP PATH
+                    app_dict["bin_dir"] = os.path.join(
+                        app_dict["app_dir"], "Payload/")
+                    app_dict["size"] = str(
+                        file_size(app_dict["app_path"])) + 'MB'  # FILE SIZE
+                    app_dict["sha1"], app_dict["sha256"] = hash_gen(
+                        app_dict["app_path"])  # SHA1 & SHA256 HASHES
+>>>>>>> upstream/master
                     print "[INFO] Extracting IPA"
                     # EXTRACT IPA
-                    Unzip(app_dict["app_path"], app_dict["app_dir"])
+                    unzip(app_dict["app_path"], app_dict["app_dir"])
                     # Get Files, normalize + to x,
                     # and convert binary plist -> xml
                     infoplist_dict = plist_analysis(app_dict["bin_dir"], False)
@@ -300,7 +344,10 @@ def static_analyzer_ios(request):
                     context = get_context_from_analysis_ipa(
                         app_dict, infoplist_dict, bin_analysis_dict, files, sfiles)
                 template = "static_analysis/ios_binary_analysis.html"
-                return render(request, template, context)
+                if api:
+                    return context
+                else:
+                    return render(request, template, context)
             elif file_type == 'ios':
                 ios_zip_db = StaticAnalyzerIOSZIP.objects.filter(
                     MD5=app_dict["md5_hash"])
@@ -312,17 +359,17 @@ def static_analyzer_ios(request):
                         "md5_hash"] + '.zip'  # NEW FILENAME
                     app_dict["app_path"] = app_dict["app_dir"] + \
                         app_dict["app_file"]  # APP PATH
-                    # ANALYSIS BEGINS - Already Unzipped‰
+                    # ANALYSIS BEGINS - Already Unzipped
                     print "[INFO] ZIP Already Extracted"
                     app_dict["size"] = str(
-                        FileSize(app_dict["app_path"])) + 'MB'  # FILE SIZE
-                    app_dict["sha1"], app_dict["sha256"] = HashGen(
+                        file_size(app_dict["app_path"])) + 'MB'  # FILE SIZE
+                    app_dict["sha1"], app_dict["sha256"] = hash_gen(
                         app_dict["app_path"])  # SHA1 & SHA256 HASHES
                     files, sfiles = ios_list_files(
-                        app_dict["app_dir"], app_dict["md5_hash"], False, 'os')
+                        app_dict["app_dir"], app_dict["md5_hash"], False, 'ios')
                     infoplist_dict = plist_analysis(app_dict["app_dir"], True)
                     code_analysis_dic = ios_source_analysis(
-                        app_dict["app_dir"], app_dict["md5_hash"])
+                        app_dict["app_dir"])
                     # Saving to DB
                     print "\n[INFO] Connecting to DB"
                     if rescan == '1':
@@ -336,12 +383,24 @@ def static_analyzer_ios(request):
                     context = get_context_from_analysis_ios(
                         app_dict, infoplist_dict, code_analysis_dic, files, sfiles)
                 template = "static_analysis/ios_source_analysis.html"
-                return render(request, template, context)
+                if api:
+                    return context
+                else:
+                    return render(request, template, context)
             else:
-                return HttpResponseRedirect('/error/')
+                msg = "File Type not supported!"
+                if api:
+                    return print_n_send_error_response(request, msg, True)
+                else:
+                    return print_n_send_error_response(request, msg, False)
         else:
-            return HttpResponseRedirect('/error/')
+            msg = "Hash match failed or Invalid file extension or file type"
+            if api:
+                return print_n_send_error_response(request, msg, True)
+            else:
+                return print_n_send_error_response(request, msg, False)
     except Exception as exp:
+<<<<<<< HEAD
         PrintException("[ERROR] Static Analyzer iOS")
         context = {
             'title': 'Error',
@@ -388,3 +447,11 @@ def view_keychain(request):
          }
     template = "static_analysis/ios_keychain.html"
     return render(request, template, context)
+=======
+        msg = str(exp)
+        exp_doc = exp.__doc__
+        if api:
+            return print_n_send_error_response(request, msg, True, exp_doc)
+        else:
+            return print_n_send_error_response(request, msg, False, exp_doc)
+>>>>>>> upstream/master
