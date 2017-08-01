@@ -205,7 +205,6 @@ def ios_list_files(src, md5_hash, binary_form, mode):
                     if re.search("db|sqlitedb|sqlite|sql", ext):
                         database += "<a href='../ViewFile/?file=" + \
                             escape(fileparam) + "&type=db&mode=" + mode + "&md5=" + \
-<<<<<<< HEAD
                             md5_hash + "''> " + escape(fileparam) + " </a></br>"
                     if re.search("log", ext):
                         log += "<a href='../ViewFile/?file="+ \
@@ -219,10 +218,6 @@ def ios_list_files(src, md5_hash, binary_form, mode):
                         cookies += "<a href='../ViewFile/?file=" + \
                            escape(fileparam) + "&type=cookies&mode=" + mode + "&md5=" + \
                            md5_hash + "''> " + escape(fileparam) + " </a></br>"
-=======
-                            md5_hash + "''> " + \
-                            escape(fileparam) + " </a></br>"
->>>>>>> upstream/master
                     if jfile.endswith(".plist"):
                         if binary_form:
                             convert_bin_xml(file_path)
@@ -268,7 +263,7 @@ def static_analyzer_ios(request, api=False):
             checksum = request.GET['checksum']
             rescan = str(request.GET.get('rescan', 0))
             filename = request.GET['name']
-        
+
         md5_match = re.match('^[0-9a-f]{32}$', checksum)
         if ((md5_match) and
                 (filename.lower().endswith('.ipa') or
