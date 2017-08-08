@@ -40,7 +40,7 @@ def get_context_from_analysis_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             'insecure_connections': info_dict["inseccon"],
             'uuid': app_dict["uuid"],
             'data_dir': app_dict["data_directory"],
-            'arch': app_dict["architectures"]
+            'arch': [str(arch) for arch in app_dict["architectures"]]
         }
         return context
     except:
@@ -110,7 +110,7 @@ def update_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             INSECCON=info_dict["inseccon"],
             UUID=app_dict["uuid"],
             DATADIR=app_dict["data_directory"],
-            ARCH=app_dict["architectures"]
+            ARCH=[str(arch) for arch in app_dict["architectures"]]
         )
 
     except:
@@ -144,7 +144,7 @@ def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             INSECCON=info_dict["inseccon"],
             UUID=app_dict["uuid"],
             DATADIR=app_dict["data_directory"],
-            ARCH=app_dict["architectures"]
+            ARCH=[str(arch) for arch in app_dict["architectures"]]
         )
         static_db.save()
     except:
