@@ -231,9 +231,10 @@ def strings_on_ipa(bin_path):
         unique_str = []
         list_of_strings = list(strings(bin_path))
         unique_str = list(set(list_of_strings))  # Make unique
-        unique_str = [ipa_str if isinstance(ipa_str, unicode) else unicode(
-            ipa_str, encoding="utf-8", errors="replace") for ipa_str in unique_str]
-        unique_str = [escape(ip_str) for ip_str in unique_str]  # Escape evil strings
+        '''unique_str = [ipa_str if isinstance(ipa_str, unicode) else unicode(
+            ipa_str, encoding="utf-8", errors="replace") for ipa_str in unique_str]'''
+        unique_str = [str(escape(ip_str)) for ip_str in unique_str]  # Escape evil strings
+        print "[DEBUG] Second unique STRING IS %s : " % unique_str
         return unique_str
     except:
         PrintException("[ERROR] - Running strings against the Binary")
