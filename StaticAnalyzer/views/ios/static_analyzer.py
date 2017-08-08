@@ -273,19 +273,13 @@ def static_analyzer_ios(request, api=False):
             ):
             app_dict = {}
             app_dict["directory"] = settings.BASE_DIR  # BASE DIR
-<<<<<<< HEAD
-            app_dict["app_name"] = request.GET['name']  # APP ORGINAL NAME
-            app_dict["md5_hash"] = request.GET['checksum']  # MD5
-            app_dict["app_dir"] = os.path.join(settings.UPLD_DIR, app_dict["md5_hash"] + '/')  # APP DIRECTORY
-            tools_dir = os.path.join(app_dict["directory"], 'StaticAnalyzer/tools/mac/')  # TOOLS DIR
-=======
             app_dict["app_name"] = filename  # APP ORGINAL NAME
             app_dict["md5_hash"] = checksum  # MD5
             app_dict["app_dir"] = os.path.join(
                 settings.UPLD_DIR, app_dict["md5_hash"] + '/')  # APP DIRECTORY
             tools_dir = os.path.join(
                 app_dict["directory"], 'StaticAnalyzer/tools/mac/')  # TOOLS DIR
->>>>>>> upstream/master
+
             if file_type == 'ipa':
                 # DB
                 ipa_db = StaticAnalyzerIPA.objects.filter(
@@ -294,25 +288,12 @@ def static_analyzer_ios(request, api=False):
                     context = get_context_from_db_entry_ipa(ipa_db)
                 else:
                     print "[INFO] iOS Binary (IPA) Analysis Started"
-<<<<<<< HEAD
                     app_dict["app_file"] = app_dict["md5_hash"] + '.ipa'  # NEW FILENAME
                     app_dict["app_path"] = app_dict["app_dir"] + app_dict["app_file"]  # APP PATH
                     app_dict["bin_dir"] = os.path.join(app_dict["app_dir"], "Payload/")
-                    app_dict["size"] = str(FileSize(app_dict["app_path"])) + 'MB'  # FILE SIZE
-                    app_dict["sha1"], app_dict["sha256"] = HashGen(app_dict["app_path"])  # SHA1 & SHA256 HASHES
+                    app_dict["size"] = str(file_size(app_dict["app_path"])) + 'MB'  # FILE SIZE
+                    app_dict["sha1"], app_dict["sha256"] = hash_gen(app_dict["app_path"])  # SHA1 & SHA256 HASHES
 
-=======
-                    app_dict["app_file"] = app_dict[
-                        "md5_hash"] + '.ipa'  # NEW FILENAME
-                    app_dict["app_path"] = app_dict["app_dir"] + \
-                        app_dict["app_file"]  # APP PATH
-                    app_dict["bin_dir"] = os.path.join(
-                        app_dict["app_dir"], "Payload/")
-                    app_dict["size"] = str(
-                        file_size(app_dict["app_path"])) + 'MB'  # FILE SIZE
-                    app_dict["sha1"], app_dict["sha256"] = hash_gen(
-                        app_dict["app_path"])  # SHA1 & SHA256 HASHES
->>>>>>> upstream/master
                     print "[INFO] Extracting IPA"
                     # EXTRACT IPA
                     unzip(app_dict["app_path"], app_dict["app_dir"])
@@ -395,7 +376,6 @@ def static_analyzer_ios(request, api=False):
             else:
                 return print_n_send_error_response(request, msg, False)
     except Exception as exp:
-<<<<<<< HEAD
         PrintException("[ERROR] Static Analyzer iOS")
         context = {
             'title': 'Error',
@@ -442,11 +422,3 @@ def view_keychain(request):
          }
     template = "static_analysis/ios_keychain.html"
     return render(request, template, context)
-=======
-        msg = str(exp)
-        exp_doc = exp.__doc__
-        if api:
-            return print_n_send_error_response(request, msg, True, exp_doc)
-        else:
-            return print_n_send_error_response(request, msg, False, exp_doc)
->>>>>>> upstream/master

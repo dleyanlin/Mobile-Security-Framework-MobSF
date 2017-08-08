@@ -1,5 +1,5 @@
 # -*- coding: utf_8 -*-
-"""Module for iOS APp Analysis in device."""
+"""Module for iOS APP Analysis in device."""
 
 
 import re
