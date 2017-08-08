@@ -88,6 +88,15 @@ RULES = [
         'input_case': 'exact'
     },
     {
+        'desc': 'WebView load files from external storage. Files in external storage can be modified by any application.',
+        'type': 'regex',
+        'regex1': r'\.loadUrl\(.*getExternalStorageDirectory\(',
+        'regex2': r'webkit\.WebView',
+        'level': 'high',
+        'match': 'regex_and',
+        'input_case': 'exact'
+    },
+    {
         'desc': 'The file is World Readable. Any App can read from the file',
         'type': 'regex',
         'regex1': r'MODE_WORLD_READABLE|Context\.MODE_WORLD_READABLE',
@@ -146,14 +155,6 @@ RULES = [
         'input_case': 'exact'
     },
     {
-        'desc': 'App can write to App Directory. Sensitive Information should be encrypted.',
-        'type': 'regex',
-        'regex1': r'MODE_PRIVATE|Context\.MODE_PRIVATE',
-        'level': 'info',
-        'match': 'single_regex',
-        'input_case': 'exact'
-    },
-    {
         'desc': 'The App uses an insecure Random Number Generator.',
         'type': 'regex',
         'regex1': r'java\.util\.Random',
@@ -164,7 +165,7 @@ RULES = [
     {
         'desc': 'The App logs information. Sensitive information should never be logged.',
         'type': 'regex',
-        'regex1': r'Log\.(v|d|i|w|e|f|s)|System\.out\.print',
+        'regex1': r'Log\.(v|d|i|w|e|f|s)|System\.out\.print|System\.err\.print',
         'level': 'info',
         'match': 'single_regex',
         'input_case': 'exact'
@@ -174,6 +175,14 @@ RULES = [
         'type': 'string',
         'string1': '.hashCode()',
         'level': 'high',
+        'match': 'single_string',
+        'input_case': 'exact'
+    },
+    {
+        'desc': 'These activities prevent screenshot when they go to background.',
+        'type': 'string',
+        'string1': 'LayoutParams.FLAG_SECURE',
+        'level': 'good',
         'match': 'single_string',
         'input_case': 'exact'
     },
@@ -240,6 +249,15 @@ RULES = [
         'input_case': 'exact'
     },
     {
+        'desc': 'This App use Realm Database with encryption.',
+        'type': 'string',
+        'string1': 'io.realm.Realm',
+        'string2': '.encryptionKey(',
+        'level': 'good',
+        'match': 'string_and',
+        'input_case': 'exact'
+    },
+    {
         'desc': 'The App may use weak IVs like "0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00" or "0x01,0x02,0x03,0x04,0x05,0x06,0x07". Not using a random IV makes the resulting ciphertext much more predictable and susceptible to a dictionary attack.',
         'type': 'string',
         'string1': '0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00',
@@ -291,6 +309,17 @@ RULES = [
         'string_or1': 'rawQuery(',
         'string_or2': 'execSQL(',
         'level': 'high',
+        'match': 'string_and_or',
+        'input_case': 'exact'
+    },
+       {
+        'desc': 'This App detects frida server.',
+        'type': 'string',
+        'string1': 'fridaserver',
+        'string_or1': '27047',
+        'string_or2': 'REJECT',
+        'string_or3': 'LIBFRIDA',
+        'level': 'good',
         'match': 'string_and_or',
         'input_case': 'exact'
     },
