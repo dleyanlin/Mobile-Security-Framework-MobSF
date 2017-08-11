@@ -48,6 +48,7 @@ class Constants(object):
         'CAT': 'cat',
         'MITMDUMP': 'mitmdump',
         'OPENSSL': 'openssl',
+        'SECURITY': 'security',
         'VIM': 'vim',
         'OPEN': 'open'
     }
