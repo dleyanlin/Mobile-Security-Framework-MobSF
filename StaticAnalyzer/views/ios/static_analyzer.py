@@ -305,6 +305,9 @@ def static_analyzer_ios(request, api=False):
                     app_dict.update(app_metadata_dict)
                     get_app_data_cache(app_dict["data_directory"] , app_dict["bin_dir"])
                     files, sfiles = ios_list_files(app_dict["bin_dir"], app_dict["md5_hash"], True, 'ipa')
+                    cache_images = [image_file for image_file in files if not re.search(infoplist_dict["bin_name"]+".app/",str(image_file))]
+                    cache_images = [image_file for image_file in cache_images if re.search("jpg|png",str(image_file))]
+                    print "\n[DEBUG] the files is: %s" % cache_images
                     bin_analysis_dict = binary_analysis(app_dict["bin_dir"], tools_dir, app_dict["app_dir"])
 
                     # Saving to DB
@@ -312,13 +315,13 @@ def static_analyzer_ios(request, api=False):
                     if rescan == '1':
                         print "\n[INFO] Updating Database..."
                         update_db_entry_ipa(
-                            app_dict, infoplist_dict, bin_analysis_dict, files, sfiles)
+                            app_dict, infoplist_dict, bin_analysis_dict, files, sfiles, cache_images)
                     elif rescan == '0':
                         print "\n[INFO] Saving to Database"
                         create_db_entry_ipa(
-                            app_dict, infoplist_dict, bin_analysis_dict, files, sfiles)
+                            app_dict, infoplist_dict, bin_analysis_dict, files, sfiles, cache_images)
                     context = get_context_from_analysis_ipa(
-                        app_dict, infoplist_dict, bin_analysis_dict, files, sfiles)
+                        app_dict, infoplist_dict, bin_analysis_dict, files, sfiles, cache_images)
                 template = "static_analysis/ios_binary_analysis.html"
                 if api:
                     return context

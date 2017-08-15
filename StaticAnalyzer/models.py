@@ -76,6 +76,7 @@ class StaticAnalyzerIPA(models.Model):
     UUID = models.TextField()
     DATADIR = models.TextField()
     ARCH = models.TextField()
+    CACHE_IMAGES = models.TextField()
 
 
 class StaticAnalyzerIOSZIP(models.Model):

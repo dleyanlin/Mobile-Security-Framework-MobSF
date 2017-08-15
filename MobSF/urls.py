@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.conf.urls import url
+from django.conf.urls.static import static
 import MobSF.views
 import MobSF.rest_api
 import APITester.views
@@ -83,6 +85,6 @@ urlpatterns = [
     url(r'^runtest/$', StaticAnalyzer.tests.start_test),
     url(r'^runapitest/$', StaticAnalyzer.tests.start_api_test),
 
-]
+] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 
 utils.printMobSFverison()

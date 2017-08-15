@@ -13,7 +13,7 @@ from StaticAnalyzer.models import (
 # IPA DB
 
 
-def get_context_from_analysis_ipa(app_dict, info_dict, bin_dict, files, sfiles):
+def get_context_from_analysis_ipa(app_dict, info_dict, bin_dict, files, sfiles, cache_images):
     """Get the context for IPA from analysis results"""
     try:
         context = {
@@ -40,7 +40,8 @@ def get_context_from_analysis_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             'insecure_connections': info_dict["inseccon"],
             'uuid': app_dict["uuid"],
             'data_dir': app_dict["data_directory"],
-            'arch': [str(arch) for arch in app_dict["architectures"]]
+            'arch': [str(arch) for arch in app_dict["architectures"]],
+            'cache_images': cache_images
         }
         return context
     except:
@@ -75,14 +76,15 @@ def get_context_from_db_entry_ipa(db_entry):
             'insecure_connections': python_list(db_entry[0].INSECCON),
             'uuid': db_entry[0].UUID,
             'data_dir': db_entry[0].DATADIR,
-            'arch': db_entry[0].ARCH
+            'arch': db_entry[0].ARCH,
+            'cache_images': python_list(db_entry[0].CACHE_IMAGES)
         }
         return context
     except:
         PrintException("[ERROR] Fetching from DB")
 
 
-def update_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
+def update_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles, cache_images):
     """Update an IPA DB entry"""
     try:
         # pylint: disable=E1101
@@ -110,14 +112,15 @@ def update_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             INSECCON=info_dict["inseccon"],
             UUID=app_dict["uuid"],
             DATADIR=app_dict["data_directory"],
-            ARCH=[str(arch) for arch in app_dict["architectures"]]
+            ARCH=[str(arch) for arch in app_dict["architectures"]],
+            CACHE_IMAGES=cache_images
         )
 
     except:
         PrintException("[ERROR] Updating DB")
 
 
-def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
+def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles, cache_images):
     """Save an IOS IPA DB entry"""
     try:
         static_db = StaticAnalyzerIPA(
@@ -144,7 +147,8 @@ def create_db_entry_ipa(app_dict, info_dict, bin_dict, files, sfiles):
             INSECCON=info_dict["inseccon"],
             UUID=app_dict["uuid"],
             DATADIR=app_dict["data_directory"],
-            ARCH=[str(arch) for arch in app_dict["architectures"]]
+            ARCH=[str(arch) for arch in app_dict["architectures"]],
+            CACHE_IMAGES=cache_images
         )
         static_db.save()
     except:

@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MOBSF_VER = "v0.9.5.3 Beta"
 BANNER = """
- __  __       _    ____  _____        ___   ___   ____  
+ __  __       _    ____  _____        ___   ___   ____
 |  \/  | ___ | |__/ ___||  ___|_   __/ _ \ / _ \ | ___|
 | |\/| |/ _ \| '_ \___ \| |_  \ \ / / | | | (_) ||___ \
 | |  | | (_) | |_) |__) |  _|  \ V /| |_| |\__, | ___) |
@@ -49,6 +49,9 @@ DWD_DIR = os.path.join(MobSF_HOME, 'downloads/')
 SCREEN_DIR = os.path.join(MobSF_HOME, 'downloads/screen/')
 # Upload Directory
 UPLD_DIR = os.path.join(MobSF_HOME, 'uploads/')
+# Media Directory
+MEDIA_ROOT = os.path.join(MobSF_HOME, 'uploads/')
+MEDIA_URL = '/uploads/'
 # Database Directory
 DB_DIR = os.path.join(MobSF_HOME, 'db.sqlite3')
 

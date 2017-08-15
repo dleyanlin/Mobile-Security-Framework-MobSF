@@ -18,6 +18,7 @@
             <li><a href="#libraries"><i class="glyphicon glyphicon-chevron-down"></i> Libraries</a></li>
             <li><a href="#strings"><i class="fa fa-list"></i> Strings</a>
             <li><a href="#files"><i class="fa fa-files-o"></i> App Files</a></li>
+            <li><a href="#images"><i class="glyphicon glyphicon-camera"></i>Cache Images</a></li>
             <!--<li><a target="_blank" href="../PDF/?md5={{ md5 }}&amp;type=IPA"><i class="glyphicon glyphicon-list-alt"></i> Download Report</a></li>
             <li><a href="javascript:document.getElementById('dynform').submit();"><i class="glyphicon glyphicon-play-circle""></i> <strong>Start Dynamic Analysis</strong></a></li>-->
           </ul>
@@ -501,11 +502,35 @@
            <div class="list-group">
                   <p>
                 {% for file in files %}
-                  {{ file}} <br>
+                  {{ file }} <br>
                 {% endfor %}
 
                   </p>
                                 </div>
+            </div>
+            <!-- /.box-body -->
+          </div>
+          <!-- /.box -->
+</section>
+<section id="images">
+  <h2 class="page-header"></h2>
+  <!-- /.box -->
+
+          <div class="box">
+            <div class="box-header">
+              <h3 class="box-title"><i class="fa fa-files-o"></i> Images</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              {% for cache_image in cache_images %}
+              <div class="col-md-4">
+                <div class="thumbnail">
+                  <a href="/uploads/{{ md5 }}/Payload/{{cache_image}}" target="_blank">
+                    <img src="/uploads/{{ md5 }}/Payload/{{cache_image}}" style="width:60%">
+                  </a>
+                </div>
+              </div>
+              {% endfor %}
             </div>
             <!-- /.box-body -->
           </div>
