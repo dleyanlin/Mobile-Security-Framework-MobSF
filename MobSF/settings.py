@@ -341,7 +341,8 @@ else:
 
     #========ANDROID DYNAMIC ANALYSIS SETTINGS================================
 
-    ANDROID_DYNAMIC_ANALYZER = "MobSF_VM"
+    #ANDROID_DYNAMIC_ANALYZER = "MobSF_VM"
+    ANDROID_DYNAMIC_ANALYZER = "MobSF_REAL_DEVICE"
 
     # You can choose any of the below
     # 1. MobSF_VM
