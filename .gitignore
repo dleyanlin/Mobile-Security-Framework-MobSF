@@ -66,4 +66,6 @@ logs/
 uploads/
 db.sqlite3
 secret
-devicesettings.py
+
+#IntelliJ IDE
+.idea

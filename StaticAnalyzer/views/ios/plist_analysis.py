@@ -164,7 +164,6 @@ def __check_insecure_connections(p_list):
     print "[INFO] Checking for Insecure Connections"
 
     insecure_connections = []
-
     if 'NSAppTransportSecurity' in p_list:
         ns_app_trans_dic = p_list['NSAppTransportSecurity']
         if 'NSAllowsArbitraryLoads' in ns_app_trans_dic:
@@ -172,7 +171,9 @@ def __check_insecure_connections(p_list):
         elif 'NSExceptionDomains' in ns_app_trans_dic:
             for key in ns_app_trans_dic['NSExceptionDomains']:
                 insecure_connections.append(key)
-
+        if 'NSAllowsArbitraryLoads' in ns_app_trans_dic:
+            if ns_app_trans_dic['NSAllowsArbitraryLoads'] is True:
+                insecure_connections.append(p_list['NSAppTransportSecurity'])
     return insecure_connections
 
 
@@ -203,7 +204,7 @@ def plist_analysis(src, is_source):
             plist_file = app_name + "-Info.plist"
             for dirname, _, files in os.walk(src):
                 for jfile in files:
-                    if plist_file in jfile:
+                    if (plist_file in jfile) and ("__MACOSX" not in dirname):
                         info_plist = os.path.join(src, dirname, jfile)
                         break
             if not isFileExists(info_plist):

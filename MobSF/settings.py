@@ -279,6 +279,19 @@ else:
     #==============================================
 
     #========DISABLED COMPONENTS===================
+
+    #----------VirusTotal--------------------------
+    VT_ENABLED = False
+    VT_API_KEY = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+    # Before setting VT_ENABLED to True,
+    # Make sure VT_API_KEY is set to your VirusTotal API key
+    # register at: https://www.virustotal.com/#/join-us
+    # You can get your API KEY from https://www.virustotal.com/en/user/<username>/apikey/
+    # VT has a premium features but the free account is just enough for personal use
+    # BE AWARE - if you enable VT, in case the file wasn't already uploaded to VirusTotal,
+    # It will be uploaded!
+    #==============================================
+
     #----------APKiD-------------------------------
     APKID_ENABLED = False
     # Before setting APKID_ENABLED to True,
