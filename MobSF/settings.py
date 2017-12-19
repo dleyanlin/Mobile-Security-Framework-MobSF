@@ -21,7 +21,7 @@ from install.windows.setup import windows_config_local
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #==============================================
 
-MOBSF_VER = "v0.9.5.4 Beta"
+MOBSF_VER = "v0.9.5.5 Beta"
 BANNER = """
  __  __       _    ____  _____        ___   ___   ____
 |  \/  | ___ | |__/ ___||  ___|_   __/ _ \ / _ \ | ___|
@@ -327,6 +327,7 @@ else:
     JD_CORE_DECOMPILER_BINARY = ""
     PROCYON_DECOMPILER_BINARY = ""
     AAPT_BINARY = ""
+    APKTOOL_BINARY = ""
     ADB_BINARY = ""
     ENJARIFY_DIRECTORY = ""
 
